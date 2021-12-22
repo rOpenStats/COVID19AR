@@ -1,0 +1,38 @@
+Package: COVID19AR
+Type: Package
+Title: for analysing COVID-19 Argentina's outbreak
+Version: 0.1.0
+Authors@R: c(
+    person("Alejandro", "Baranek",,"abaranek@dc.uba.ar", c("aut","com","cre", "cph"))
+    )
+Maintainer: Alejandro Baranek <abaranek@dc.uba.ar>
+Description: Tools for analysing COVID-19 Argentina's outbreak
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Suggests:
+         testthat
+Depends: R (>= 3.6),
+         dplyr,
+         knitr,
+         magrittr,
+         lgr
+Imports: R6,
+         ggplot2,
+         readr,
+         readxl,
+         checkmate,
+         scales,
+         RColorBrewer,
+         reshape2,
+         httr,
+         jsonlite,
+         testthat,
+         TTR
+Collate:
+        'deaths-lib.R'
+        'test-lib.R'
+        'COVID19AR-lib.R'
+        'report-lib.R'
+        'util-lib.R'
+RoxygenNote: 7.1.1

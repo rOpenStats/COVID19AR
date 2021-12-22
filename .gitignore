@@ -1,0 +1,24 @@
+R/dev/
+
+# Windows image file caches
+Thumbs.db
+
+# Folder config file
+Desktop.ini
+
+######################
+# OSX
+######################
+
+*.DS_Store
+
+# Thumbnails
+._*
+
+
+# R
+**/.Rproj.user
+**/.Rhistory
+**/.RData
+
+.Rproj.user
