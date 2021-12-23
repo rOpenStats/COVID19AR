@@ -14,6 +14,7 @@ Suggests:
          testthat
 Depends: R (>= 3.6),
          dplyr,
+         dtplyr,
          knitr,
          magrittr,
          lgr
@@ -30,9 +31,11 @@ Imports: R6,
          testthat,
          TTR
 Collate:
+        'zzz.R'
+        'eir-lib.R'
         'deaths-lib.R'
         'test-lib.R'
         'COVID19AR-lib.R'
         'report-lib.R'
         'util-lib.R'
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2

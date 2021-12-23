@@ -134,9 +134,9 @@ COVID19ARCurator <- R6Class("COVID19ARCurator",
         self$checkSoundness()
         logger$info("Mutating data")
         #self$data$edad.rango <- NA
-        #levels(self$data$edad.rango) <- self$edad.coder$agelabels
+        #levels(self$data$edad.rango) <- self$edad.coder$age.labels
         names(self$data)
-        unique(self$data$edad_años_meses)
+        #unique(self$data$edad_años_meses)
         #Generate edad_actual_anios
         self$data$edad_actual_anios <- self$data$edad
         self$data[self$data$edad_años_meses == "Meses", ]$edad_actual_anios <- 0
@@ -196,7 +196,7 @@ COVID19ARCurator <- R6Class("COVID19ARCurator",
      }
      if (is.null(ret)){
        #self$data$edad.rango <- NA
-       #levels(self$data$edad.rango) <- self$edad.coder$agelabels
+       #levels(self$data$edad.rango) <- self$edad.coder$age.labels
        temporal.fields.agg <- group.vars[group.vars %in% self$fields.temporal]
        non.temporal.fields.agg <- setdiff(group.vars, temporal.fields.agg)
        non.temporal.groups <- data2process %>%
@@ -327,23 +327,24 @@ COVID19ARCurator <- R6Class("COVID19ARCurator",
 #' @export
 EdadCoder <- R6Class("EdadCoder",
   public = list(
-   agebreaks = NA,
-   agelabels = NA,
+   age.breaks = NA,
+   age.labels = NA,
   initialize = function(){
     self
   },
-  setupCoder = function(){
-   self$agebreaks <- c(0, 1, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 120)
-   self$agelabels <- c("0", "1-9", "10-14", "15-19", "20-24", "25-29", "30-34",
-                  "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69",
-                  "70-74", "75-79", "80+")
+  setupCoder = function(age.breaks = c(0, 1, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 120),
+                        age.labels = c("0", "1-9", "10-14", "15-19", "20-24", "25-29", "30-34",
+                                       "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69",
+                                       "70-74", "75-79", "80+")){
+   self$age.breaks <- age.breaks
+   self$age.labels <- age.labels
    self
   },
   codeEdad = function(edad){
    as.character(cut(edad,
-       breaks = self$agebreaks,
+       breaks = self$age.breaks,
        right = FALSE,
-       labels = self$agelabels))
+       labels = self$age.labels))
   }
   ))
 

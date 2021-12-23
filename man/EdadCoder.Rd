@@ -34,7 +34,11 @@ kenarab
 \if{latex}{\out{\hypertarget{method-setupCoder}{}}}
 \subsection{Method \code{setupCoder()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EdadCoder$setupCoder()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{EdadCoder$setupCoder(
+  age.breaks = c(0, 1, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 120),
+  age.labels = c("0", "1-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39",
+    "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "80+")
+)}\if{html}{\out{</div>}}
 }
 
 }

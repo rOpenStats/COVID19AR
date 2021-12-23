@@ -1,0 +1,24 @@
+#' COVID19AR
+#'
+#' A package to work with SQL datasources in a simple manner
+#'
+#' @docType package
+#' @name COVID19AR
+#' @import R6 lgr DBI
+#' @importFrom utils str
+#' @author Alejandro Baranek <abaranek@dc.uba.ar>
+
+#' Executes code while loading the package.
+#'
+#' @param libname Library name
+#' @param pkgname Package name
+#' @import tuneR
+# execute onload
+.onLoad <- function(libname, pkgname) {
+ os <- getOs()
+ if (os == "osx") {
+ }
+ if (os == "windows") {
+  Sys.setlocale("LC_CTYPE","Spanish_Argentina")
+ }
+}
