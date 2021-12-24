@@ -15,7 +15,7 @@
 #' @import tuneR
 # execute onload
 .onLoad <- function(libname, pkgname) {
- os <- getOs()
+ os <- getOS()
  if (os == "osx") {
  }
  if (os == "windows") {

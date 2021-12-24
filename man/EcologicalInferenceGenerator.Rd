@@ -18,7 +18,7 @@ kenarab
 \item \href{#method-loadFilesFromMinSal}{\code{EcologicalInferenceGenerator$loadFilesFromMinSal()}}
 \item \href{#method-preprocessMinSal}{\code{EcologicalInferenceGenerator$preprocessMinSal()}}
 \item \href{#method-LoadDataFromCovidStats}{\code{EcologicalInferenceGenerator$LoadDataFromCovidStats()}}
-\item \href{#method-merge}{\code{EcologicalInferenceGenerator$merge()}}
+\item \href{#method-makeEcologicalInference}{\code{EcologicalInferenceGenerator$makeEcologicalInference()}}
 \item \href{#method-clone}{\code{EcologicalInferenceGenerator$clone()}}
 }
 }
@@ -63,11 +63,11 @@ kenarab
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-merge"></a>}}
-\if{latex}{\out{\hypertarget{method-merge}{}}}
-\subsection{Method \code{merge()}}{
+\if{html}{\out{<a id="method-makeEcologicalInference"></a>}}
+\if{latex}{\out{\hypertarget{method-makeEcologicalInference}{}}}
+\subsection{Method \code{makeEcologicalInference()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$merge()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$makeEcologicalInference()}\if{html}{\out{</div>}}
 }
 
 }

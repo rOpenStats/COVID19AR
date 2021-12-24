@@ -3,6 +3,7 @@
 #' @author kenarab
 #' @importFrom R6 R6Class
 #' @import dplyr
+#' @reshape2
 #' @export
 EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
   public = list(
@@ -11,8 +12,6 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
    cases.filename = NA,
    vaccines.filename = NA,
    edad.coder   = NA,
-   cases.df     = NA,
-   vaccines.df  = NA,
    population.df = NA,
    # Consolidated
    provincias.departamentos.edad.df = NA,
@@ -35,150 +34,205 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
     self$logger <- genLogger(self)
     self
    },
-   loadFilesFromMinSal = function(n.max = Inf){
+   preprocessCases = function(n.max = 3000000, force.preprocess = FALSE){
     logger <- getLogger(self)
-    cases.zip.path <- file.path(self$data.dir, gsub("\\.csv", ".zip", self$cases.filename))
-    dest.file <- file.path(self$working.dir, self$cases.filename)
-    if(file.exists(cases.zip.path) & !file.exists(dest.file)){
-     logger$debug("Decompressing", zip.filepath = cases.zip.path)
-     unzip(cases.zip.path, junkpaths = TRUE, exdir = self$working.dir)
-    }
+    cases.preprocessed.filepath <- file.path(self$data.dir, "cases_agg.csv")
+    if (!file.exists(cases.preprocessed.filepath) | force.preprocess){
+     cases.zip.path <- file.path(self$data.dir, gsub("\\.csv", ".zip", self$cases.filename))
+     dest.file <- file.path(self$working.dir, self$cases.filename)
+     if(file.exists(cases.zip.path) & !file.exists(dest.file)){
+      logger$debug("Decompressing", zip.filepath = cases.zip.path)
+      unzip(cases.zip.path, junkpaths = TRUE, exdir = self$working.dir)
+     }
+     dir(self$working.dir)
+     cases.file.path <- file.path(self$working.dir, self$cases.filename)
+     logger$debug("Loading",
+                  cases.df = cases.file.path,
+                  n.max = n.max)
+     cases.df <- readr::read_csv(cases.file.path, n_max = n.max,
+                                      col_types = cols(
+                                       id_evento_caso = col_double(),
+                                       sexo = col_character(),
+                                       edad = col_double(),
+                                       edad_años_meses = col_character(),
+                                       residencia_pais_nombre = col_character(),
+                                       residencia_provincia_nombre = col_character(),
+                                       residencia_departamento_nombre = col_character(),
+                                       carga_provincia_nombre = col_character(),
+                                       fecha_inicio_sintomas = col_date(format = ""),
+                                       fecha_apertura = col_date(format = ""),
+                                       sepi_apertura = col_double(),
+                                       fecha_internacion = col_date(format = ""),
+                                       cuidado_intensivo = col_character(),
+                                       fecha_cui_intensivo = col_date(format = ""),
+                                       fallecido = col_character(),
+                                       fecha_fallecimiento = col_date(format = ""),
+                                       asistencia_respiratoria_mecanica = col_character(),
+                                       carga_provincia_id = col_character(),
+                                       origen_financiamiento = col_character(),
+                                       clasificacion = col_character(),
+                                       clasificacion_resumen = col_character(),
+                                       residencia_provincia_id = col_character(),
+                                       fecha_diagnostico = col_date(format = ""),
+                                       residencia_departamento_id = col_character(),
+                                       ultima_actualizacion = col_date(format = "")
+                                      ))
+     names(cases.df)[4] <- "edad_anios_meses"
+     grupos_etarios <- "30-39"
 
+     age.breaks <- c(0, 12, 18, 30, 40, 50, 60, 70, 80, 90, 100, 13)
+     age.labels <- c("<12", "12-17", "18-29", "30-39",
+                     "40-49", "50-59", "60-69", "70-79", "80-89", "90-99",
+                     ">=100")
+     self$edad.coder <- EdadCoder$new()
+     self$edad.coder$setupCoder(age.breaks = age.breaks,
+                                age.labels = age.labels)
+
+     #cases.df %>% select(edad_aC1os_meses)
+     cases.df %<>% mutate_cond(edad_anios_meses == "Meses", edad = 0)
+     cases.df %<>% mutate(grupo_etario= self$edad.coder$codeEdad(edad))
+     #cases.df <- data.table::
+
+     cases.df %<>% mutate_cond(is.na(fecha_inicio_sintomas), fecha_inicio_sintomas = fecha_apertura)
+     cases.df %<>% mutate(sepi_fis = as.numeric(as.character(fecha_inicio_sintomas, format = "%W")))
+     cases.df %<>% mutate(year_fis = as.numeric(as.character(fecha_inicio_sintomas, format = "%Y")))
+     head(cases.df %>% select(year_fis, sepi_fis, fecha_inicio_sintomas, fallecido, cuidado_intensivo, clasificacion))
+
+     cases.df %>% group_by(clasificacion_resumen) %>% summarize(n = n())
+     nrow(cases.df)
+     cases.df %<>% filter(clasificacion_resumen %in% c("Confirmado", "Descartado"))
+     nrow(cases.df)
+
+     self$cases.agg.df <-
+      cases.df %>%
+      #filter(grupo_etario %in% grupos_etarios) %>%
+      group_by(year_fis, sepi_fis, residencia_provincia_nombre,
+               residencia_departamento_nombre, grupo_etario) %>%
+      summarize(fallecidos = sum(ifelse(fallecido == "SI" & clasificacion_resumen == "Confirmado", 1, 0)),
+                cuidados_intensivos = sum(ifelse(cuidado_intensivo == "SI" & clasificacion_resumen == "Confirmado", 1, 0)),
+                sospechosos = n(),
+                positivos = sum(ifelse(clasificacion_resumen == "Confirmado", 1, 0)),
+                descartados = sum(ifelse(clasificacion_resumen == "Descartado", 1, 0)))
+     self$cases.agg.df %<>% mutate(residencia_identificada = ifelse(residencia_departamento_nombre == "SIN ESPECIFICAR", 0, 1))
+     self$cases.agg.identified <- self$cases.agg.df %>%
+      group_by(residencia_provincia_nombre, residencia_identificada) %>%
+      summarize(fallecidos = sum(fallecidos),
+                cuidados_intensivos = sum(cuidados_intensivos),
+                positivos  = sum(positivos),
+                sospechosos = sum(sospechosos))
+     self$cases.agg.identified
+     reshape2::dcast(self$cases.agg.identified, residencia_provincia_nombre ~ residencia_identificada,
+                     value.var  = "positivos", fill = 0)
+
+     as.character(Sys.Date(), format = "%W")
+     self$cases.agg.df %>% filter(year_fis == 2021 & sepi_fis == 50)
+     tail(self$cases.agg.df)
+
+     #self$cases.agg.df %>% filter(residencia_departamento_nombre == "SIN ESPECIFICAR")
+     logger$info("Saving cases.agg.df", cases.agg.filepath = cases.preprocessed.filepath)
+     write_delim(self$cases.agg.df, file = cases.preprocessed.filepath, delim = ";",
+                 )
+    }
+    else{
+     self$cases.agg.df  <- read_delim(file = cases.preprocessed.filepath, delim = ";",
+                                      col_types = cols(
+                                       year_fis = col_number(),
+                                       sepi_fis = col_number(),
+                                       residencia_provincia_nombre = col_character(),
+                                       residencia_departamento_nombre = col_character(),
+                                       grupo_etario = col_character(),
+                                       fallecidos = col_number(),
+                                       cuidados_intensivos = col_number(),
+                                       sospechosos = col_number(),
+                                       positivos = col_number(),
+                                       descartados = col_number(),
+                                       residencia_identificada = col_number()
+                                      ))
+    }
+    self$cases.agg.df
+   },
+   preprocessVaccines = function(n.max = 3000000, force.preprocess = FALSE){
+    logger <- getLogger(self)
     vaccines.zip.path <- file.path(self$data.dir,gsub("\\.csv", ".zip", self$vaccines.filename))
     dest.file <- file.path(self$working.dir, self$vaccines.filename)
-    if(file.exists(vaccines.zip.path) & !file.exists(dest.file)){
-     logger$debug("Decompressing", zip.filepath = vaccines.zip.path)
-     unzip(vaccines.zip.path, junkpaths = TRUE, exdir = self$working.dir)
+    vaccines.preprocessed.filepath <- file.path(self$data.dir, "vaccines_agg.csv")
+    if (!file.exists(vaccines.preprocessed.filepath) | force.preprocess ){
+     self$LoadDataFromCovidStats()
+     if(file.exists(vaccines.zip.path) & !file.exists(dest.file)){
+      logger$debug("Decompressing", zip.filepath = vaccines.zip.path)
+      unzip(vaccines.zip.path, junkpaths = TRUE, exdir = self$working.dir)
+     }
+     vaccines.file.path <- file.path(self$working.dir, self$vaccines.filename)
+     logger$debug("Loading",
+                  vaccines.file.path = vaccines.file.path,
+                  n.max = n.max)
+     vaccines.df <- readr::read_csv(vaccines.file.path,
+                                         n_max = n.max,
+                                         col_types = cols(
+                                          sexo = col_character(),
+                                          grupo_etario = col_character(),
+                                          jurisdiccion_residencia = col_character(),
+                                          jurisdiccion_residencia_id = col_character(),
+                                          depto_residencia = col_character(),
+                                          depto_residencia_id = col_character(),
+                                          jurisdiccion_aplicacion = col_character(),
+                                          jurisdiccion_aplicacion_id = col_character(),
+                                          depto_aplicacion = col_character(),
+                                          depto_aplicacion_id = col_character(),
+                                          fecha_aplicacion = col_date(format = ""),
+                                          vacuna = col_character(),
+                                          cod_dosis_generica = col_double(),
+                                          nombre_dosis_generica = col_character(),
+                                          condicion_aplicacion = col_character(),
+                                          orden_dosis = col_double(),
+                                          lote_vacuna = col_character()
+                                         ))
+     #names(vaccines.df)
+     #unique(vaccines.df$grupo_etario)
+     vaccines.df %<>% mutate(fecha_inmunidad = fecha_aplicacion)
+     vaccines.df %<>% mutate(sepi_fis = as.numeric(as.character(fecha_inmunidad, format = "%W")))
+     vaccines.df %<>% mutate(year_fis = as.numeric(as.character(fecha_inmunidad, format = "%Y")))
+
+     self$vaccines.agg.df <- vaccines.df %>%
+      #filter(grupo_etario %in% grupos_etarios) %>%
+      group_by(year_fis, sepi_fis, jurisdiccion_residencia, depto_residencia, orden_dosis, grupo_etario) %>%
+      summarize(applications = n())
+     #Cumsum applications
+     self$vaccines.agg.df %<>%
+      ungroup(year_fis, sepi_fis) %>%
+      mutate(cum.applications = cumsum(applications))
+
+     # self$provincias.departamentos.edad.df %>%
+     #  filter(departamento == "Almirante Brown" & grupo == "30-39")
+     self$vaccines.agg.df %<>%
+      left_join(self$provincias.departamentos.edad.df %>%
+                 select(provincia, departamento, grupo, personas),
+                by = c(jurisdiccion_residencia = "provincia",
+                       depto_residencia = "departamento", grupo_etario = "grupo"))
+     self$vaccines.agg.df %<>% mutate(applications.perc = round(cum.applications/personas, 4))
+
+     self$vaccines.agg.df %>% filter(year_fis == 2021 & sepi_fis == 49)
+     tail(self$vaccines.agg.df %>%
+           filter(year_fis == 2021 & depto_residencia == "Almirante Brown" & orden_dosis == 2) %>%
+           select(year_fis, sepi_fis, cum.applications, applications.perc, personas))
+     tail(self$vaccines.agg.df)
+     #self$cases.agg.df %>% filter(residencia_departamento_nombre == "SIN ESPECIFICAR")
+     logger$info("Saving vaccines.agg.df", vaccines.agg.filepath = vaccines.preprocessed.filepath)
+     write_delim(self$vaccines.agg.df, file = vaccines.preprocessed.filepath, delim = ";")
+    }
+    else{
+     self$vaccines.agg.df  <- read_delim(file = vaccines.preprocessed.filepath, delim = ";")
     }
 
-    dir(self$working.dir)
-    logger$debug("Loading",
-                 cases.df = file.path(self$working.dir, cases.filename),
-                 n.max = n.max)
-    self$cases.df <- readr::read_csv(file.path(self$working.dir, cases.filename), n_max = n.max,
-                                col_types = cols(
-                                 id_evento_caso = col_double(),
-                                 sexo = col_character(),
-                                 edad = col_double(),
-                                 edad_años_meses = col_character(),
-                                 residencia_pais_nombre = col_character(),
-                                 residencia_provincia_nombre = col_character(),
-                                 residencia_departamento_nombre = col_character(),
-                                 carga_provincia_nombre = col_character(),
-                                 fecha_inicio_sintomas = col_date(format = ""),
-                                 fecha_apertura = col_date(format = ""),
-                                 sepi_apertura = col_double(),
-                                 fecha_internacion = col_date(format = ""),
-                                 cuidado_intensivo = col_character(),
-                                 fecha_cui_intensivo = col_date(format = ""),
-                                 fallecido = col_character(),
-                                 fecha_fallecimiento = col_date(format = ""),
-                                 asistencia_respiratoria_mecanica = col_character(),
-                                 carga_provincia_id = col_character(),
-                                 origen_financiamiento = col_character(),
-                                 clasificacion = col_character(),
-                                 clasificacion_resumen = col_character(),
-                                 residencia_provincia_id = col_character(),
-                                 fecha_diagnostico = col_date(format = ""),
-                                 residencia_departamento_id = col_character(),
-                                 ultima_actualizacion = col_date(format = "")
-                                ))
-    logger$debug("Loading",
-                 cases.df = file.path(self$working.dir, vaccines.filename),
-                 n.max = n.max)
-    self$vaccines.df <- readr::read_csv(file.path(self$working.dir, vaccines.filename), n_max = n.max,
-                                   col_types = cols(
-                                    sexo = col_character(),
-                                    grupo_etario = col_character(),
-                                    jurisdiccion_residencia = col_character(),
-                                    jurisdiccion_residencia_id = col_character(),
-                                    depto_residencia = col_character(),
-                                    depto_residencia_id = col_character(),
-                                    jurisdiccion_aplicacion = col_character(),
-                                    jurisdiccion_aplicacion_id = col_character(),
-                                    depto_aplicacion = col_character(),
-                                    depto_aplicacion_id = col_character(),
-                                    fecha_aplicacion = col_date(format = ""),
-                                    vacuna = col_character(),
-                                    cod_dosis_generica = col_double(),
-                                    nombre_dosis_generica = col_character(),
-                                    condicion_aplicacion = col_character(),
-                                    orden_dosis = col_double(),
-                                    lote_vacuna = col_character()
-                                   ))
-    self$preprocessMinSal
    },
-   preprocessMinSal = function(n.max = 3000000){
+   preprocessMinSal = function(n.max = 3000000, force.preprocess = FALSE){
     logger <- getLogger(self)
     #self$loadFiles(n.max = n.max)
 
-    grupos_etarios <- "30-39"
+    self$preprocessCases(n.max, force.preprocess = force.preprocess)
+    self$preprocessVaccines(n.max, force.preprocess = force.preprocess)
 
-    age.breaks <- c(0, 12, 18, 30, 40, 50, 60, 70, 80, 90, 100, 13)
-    age.labels <- c("<12", "12-17", "18-29", "30-39",
-                    "40-49", "50-59", "60-69", "70-79", "80-89", "90-99",
-                    ">=100")
-    self$edad.coder <- EdadCoder$new()
-    self$edad.coder$setupCoder(age.breaks = age.breaks,
-                          age.labels = age.labels)
 
-    #cases.df %>% select(edad_años_meses)
-    self$cases.df %<>% mutate_cond(edad_años_meses == "Meses", edad = 0)
-    self$cases.df %<>% mutate(grupo_etario= self$edad.coder$codeEdad(edad))
-    #self$cases.df <- data.table::
-
-    self$cases.df %<>% mutate_cond(is.na(fecha_inicio_sintomas), fecha_inicio_sintomas = fecha_apertura)
-    self$cases.df %<>% mutate(sepi_fis = as.numeric(as.character(fecha_inicio_sintomas, format = "%W")))
-    self$cases.df %<>% mutate(year_fis = as.numeric(as.character(fecha_inicio_sintomas, format = "%Y")))
-    head(self$cases.df %>% select(year_fis, sepi_fis, fecha_inicio_sintomas, fallecido, cuidado_intensivo, clasificacion))
-
-    self$cases.df %>% group_by(clasificacion_resumen) %>% summarize(n = n())
-    nrow(self$cases.df)
-    self$cases.df %<>% filter(clasificacion_resumen %in% c("Confirmado", "Descartado"))
-    nrow(self$cases.df)
-
-    self$cases.agg.df <-
-     self$cases.df %>%
-     filter(grupo_etario %in% grupos_etarios) %>%
-     group_by(year_fis, sepi_fis, residencia_provincia_nombre,
-              residencia_departamento_nombre, grupo_etario) %>%
-     summarize(fallecidos = sum(ifelse(fallecido == "SI" & clasificacion_resumen == "Confirmado", 1, 0)),
-               cuidados_intensivos = sum(ifelse(cuidado_intensivo == "SI" & clasificacion_resumen == "Confirmado", 1, 0)),
-               sospechosos = n(),
-               positivos = sum(ifelse(clasificacion_resumen == "Confirmado", 1, 0)),
-               descartados = sum(ifelse(clasificacion_resumen == "Descartado", 1, 0)))
-    self$cases.agg.df %<>% mutate(residencia_identificada = ifelse(residencia_departamento_nombre == "SIN ESPECIFICAR", 0, 1))
-    self$cases.agg.identified <- cases.agg.df %>%
-     group_by(residencia_provincia_nombre, residencia_identificada) %>%
-     summarize(fallecidos = sum(fallecidos),
-               cuidados_intensivos = sum(cuidados_intensivos),
-               positivos  = sum(positivos),
-               sospechosos = sum(sospechosos))
-    self$cases.agg.identified
-    dcast(self$cases.agg.identified, residencia_provincia_nombre ~ residencia_identificada,
-          value.var  = "positivos", fill = 0)
-
-    as.character(Sys.Date(), format = "%W")
-    cases.agg.df %>% filter(year_fis == 2021 & sepi_fis == 50)
-    tail(cases.agg.df)
-
-    cases.agg.df %>% filter(residencia_departamento_nombre == "SIN ESPECIFICAR")
-
-    cases.agg.df %>% filter()
-    #https://covidstats.com.ar/ws/mapa?porprovincia=false&pordepartamento=true
-
-    names(vaccines.df)
-    unique(vaccines.df$grupo_etario)
-    self$vaccines.df %<>% mutate(fecha_inmunidad = fecha_aplicacion + 15)
-    self$vaccines.df %<>% mutate(sepi_fis = as.numeric(as.character(fecha_inmunidad, format = "%W")))
-    self$vaccines.df %<>% mutate(year_fis = as.numeric(as.character(fecha_inmunidad, format = "%Y")))
-
-    self$vaccines.agg.df <- self$vaccines.df %>%
-     filter(grupo_etario %in% grupos_etarios) %>%
-     group_by(year_fis, sepi_fis, jurisdiccion_residencia, depto_residencia, orden_dosis, grupo_etario) %>% summarize(n = n())
-    self$vaccines.agg.df %>% filter(year_fis == 2021 & sepi_fis == 49)
-    tail(vaccines.agg.df)
-    stop("Not yet completed. Data and consolidation is missing")
    },
    LoadDataFromCovidStats = function(force.download = FALSE){
     logger <- getLogger(self)
@@ -229,14 +283,13 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
      vacunaciones.edad.df <- as.data.frame(vacunaciones.edad.json)
     }
     head(vacunaciones.edad.df)
-    names(population.json)
     tail(as.data.frame(vacunaciones.edad.json))
-    names(as.data.frame(population.json[[1]]))
 
     provincias.df <- vacunaciones.edad.df %>%
                     group_by(idprovincia, provincia) %>%
                     summarize(personas = sum(personas))
     self$provincias.departamentos.edad.df <- NULL
+    logger$info("Calculating populations for departamentos")
     for (i in seq_len(nrow(provincias.df))){
      provincia.df <- provincias.df[i,]
      vacunaciones.edad.provincia.df <- vacunaciones.edad.df %>% filter(provincia == provincia.df$provincia)
@@ -256,15 +309,54 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
      }
      self$provincias.departamentos.edad.df <- rbind(self$provincias.departamentos.edad.df, provincia.departamentos.edad.df)
     }
-    stop("Under construction")
-    for (field in vacunas.fields){
-     provincia.departamento.edad.df[, field] <- round(provincia.departamento.edad.df[, field]/provincia.departamento.edad.df$personas, 5)
-    }
-
-    self$merged.df
-
-
+    # logger$info("Calculating vaccunations for week")
+    # for (i in seq_len(length(vacunaciones.json))){
+    #  vacunaciones.departamento.json <- vacunaciones.json[[i]]
+    #  departamento <- unique(vacunaciones.departamento.json$denominacion)
+    #  current.codigo <- unique(vacunaciones.departamento.json$codigo)
+    #  if (is.null(vacunaciones.departamento.json$poblacion)){
+    #   vacunaciones.departamento.json$poblacion <- NA
+    #  }
+    #  vacunaciones.departamento.df <- as.data.frame(vacunaciones.departamento.json)
+    #  vacunaciones.departamento.df$date <- as.Date("2020-03-01") + seq_len(nrow(vacunaciones.departamento.df))
+    #  nrow(vacunaciones.departamento.df)
+    #
+    #  tail(vacunaciones.departamento.df)
+    #  #debug
+    # }
+    # for (field in vacunas.fields){
+    #  provincia.departamento.edad.df[, field] <- round(provincia.departamento.edad.df[, field]/provincia.departamento.edad.df$personas, 5)
+    # }
+    #self$pr
    },
-   merge = function(){
-
+   makeEcologicalInference = function(prediction.field = "cuidados_intensivos"){
+     year.week.df <- self$vaccines.agg.df %>%
+       group_by(year_fis, sepi_fis) %>%
+       summarize(applications = sum(applications)) %>%
+       arrange(year_fis, sepi_fis)
+     ecoinference.df <- NULL
+     for (i in seq_len(nrow(year.week.df))){
+       current.week.df <- year.week.df[i,]
+       names(vaccines.week.df)
+       vaccines.week.df <- self$vaccines.agg.df %>%
+         filter(year_fis == current.week.df$year_fis, sepi_fis == current.week.df$sepi_fis)
+       vaccines.week.df %<>% mutate(provincia_departamento = paste(jurisdiccion_residencia, depto_residencia, sep = "-"))
+       vaccines.week.df.not.vaccunated <- vaccines.week.df %>% group_by(provincia_departamento, grupo_etario, personas) %>% summarize(applications.perc = 1- sum(applications.perc))
+       vaccines.week.df.not.vaccunated %<>% mutate(orden_dosis = 0)
+       vaccines.week.df <- vaccines.week.df %>% bind_rows(vaccines.week.df.not.vaccunated)
+       vaccines.week.df %>% select(provincia_departamento)
+       vaccines.week.df.tab <- reshape2::dcast(vaccines.week.df, provincia_departamento + grupo_etario ~ orden_dosis, value.var = "applications.perc", fill = 0)
+       vaccines.week.df.tab
+       tail(vaccines.week.df.tab)
+       names(cases.week.df)
+       cases.week.df <- self$cases.agg.df %>%
+         filter(year_fis == current.week.df$year_fis, sepi_fis == current.week.df$sepi_fis)
+       cases.week.df %<>% mutate(provincia_departamento = paste(residencia_provincia_nombre, residencia_departamento_nombre, sep = "-"))
+       cases.week.df %<>% ungroup() %>% select(any_of(c("provincia_departamento", "grupo_etario", prediction.field)))
+       cases.week.df
+       ecological.inference.df <- vaccines.week.df.tab %>% inner_join(cases.week.df,
+                                        by = c("provincia_departamento", "grupo_etario"))
+       ecological.inference.df
+       stop("Under construction")
+     }
    }))
