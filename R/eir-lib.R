@@ -2,11 +2,13 @@
 #' EcologicalInferenceGenerator
 #' @author kenarab
 #' @importFrom R6 R6Class
+#' @import sqldf
 #' @import dplyr
 #' @reshape2
 #' @export
 EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
   public = list(
+   use.sqlfd    = TRUE,
    data.dir     = NA,
    working.dir  = NA,
    cases.filename = NA,
@@ -153,54 +155,83 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
    },
    preprocessVaccines = function(n.max = 3000000, force.preprocess = FALSE){
     logger <- getLogger(self)
-    vaccines.zip.path <- file.path(self$data.dir,gsub("\\.csv", ".zip", self$vaccines.filename))
+    self$data.dir <- "~/../Downloads/"
+    vaccines.zip.path <- file.path(self$data.dir, gsub("\\.csv", ".zip", self$vaccines.filename))
     dest.file <- file.path(self$working.dir, self$vaccines.filename)
     vaccines.preprocessed.filepath <- file.path(self$data.dir, "vaccines_agg.csv")
+    #dir(self$data.dir)[grep("vaccin", dir(self$data.dir), ignore.case = TRUE)]
     if (!file.exists(vaccines.preprocessed.filepath) | force.preprocess ){
      self$LoadDataFromCovidStats()
      if(file.exists(vaccines.zip.path) & !file.exists(dest.file)){
       logger$debug("Decompressing", zip.filepath = vaccines.zip.path)
       unzip(vaccines.zip.path, junkpaths = TRUE, exdir = self$working.dir)
      }
-     vaccines.file.path <- file.path(self$working.dir, self$vaccines.filename)
+     #vaccines.file.path <- file.path(self$working.dir, self$vaccines.filename)
+     vaccines.file.path <- file.path(self$working.dir, gsub("\\.csv", "_head.csv", self$vaccines.filename))
      logger$debug("Loading",
                   vaccines.file.path = vaccines.file.path,
                   n.max = n.max)
-     vaccines.df <- readr::read_csv(vaccines.file.path,
-                                         n_max = n.max,
-                                         col_types = cols(
-                                          sexo = col_character(),
-                                          grupo_etario = col_character(),
-                                          jurisdiccion_residencia = col_character(),
-                                          jurisdiccion_residencia_id = col_character(),
-                                          depto_residencia = col_character(),
-                                          depto_residencia_id = col_character(),
-                                          jurisdiccion_aplicacion = col_character(),
-                                          jurisdiccion_aplicacion_id = col_character(),
-                                          depto_aplicacion = col_character(),
-                                          depto_aplicacion_id = col_character(),
-                                          fecha_aplicacion = col_date(format = ""),
-                                          vacuna = col_character(),
-                                          cod_dosis_generica = col_double(),
-                                          nombre_dosis_generica = col_character(),
-                                          condicion_aplicacion = col_character(),
-                                          orden_dosis = col_double(),
-                                          lote_vacuna = col_character()
-                                         ))
-     #names(vaccines.df)
-     #unique(vaccines.df$grupo_etario)
-     vaccines.df %<>% mutate(fecha_inmunidad = fecha_aplicacion)
-     vaccines.df %<>% mutate(sepi_fis = as.numeric(as.character(fecha_inmunidad, format = "%W")))
-     vaccines.df %<>% mutate(year_fis = as.numeric(as.character(fecha_inmunidad, format = "%Y")))
+     if (self$use.sqlfd){
+      sql.text <- "select strftime('%Y', replace(fecha_aplicacion, '\"', '')) year_fis,
+                          strftime('%W', replace(fecha_aplicacion, '\"', '')) week_fis,
+                          jurisdiccion_residencia, depto_residencia, orden_dosis, grupo_etario,
+                          count(*) as applications
+                   from file
+                   group by fecha_aplicacion,
+                            strftime('%Y', replace(fecha_aplicacion, '\"', '')),
+                            strftime('%W', replace(fecha_aplicacion, '\"', '')),
+                            jurisdiccion_residencia, depto_residencia, orden_dosis, grupo_etario"
+      self$vaccines.agg.df <-
+           read.csv.sql(vaccines.file.path,
+                        #vaccines.zip.path,
+                        sql = sql.text, header = TRUE, sep = ",",
+                        nrows = n.max)
+      names(self$vaccines.agg.df)
+      self$vaccines.agg.df <- removeQuotes(self$vaccines.agg.df, fields = c("jurisdiccion_residencia", "depto_residencia", "grupo_etario", "applications"))
+      nrow(self$vaccines.agg.df)
+      self$vaccines.agg.df[900:910,]
+      unique(self$vaccines.agg.df$jurisdiccion_residencia)
+      head(self$vaccines.agg.df %>% filter(jurisdiccion_residencia == "CABA" & grupo_etario == "18-29"))
+     }
 
-     self$vaccines.agg.df <- vaccines.df %>%
-      #filter(grupo_etario %in% grupos_etarios) %>%
-      group_by(year_fis, sepi_fis, jurisdiccion_residencia, depto_residencia, orden_dosis, grupo_etario) %>%
-      summarize(applications = n())
-     #Cumsum applications
-     self$vaccines.agg.df %<>%
-      ungroup(year_fis, sepi_fis) %>%
-      mutate(cum.applications = cumsum(applications))
+     else{
+      vaccines.df <- readr::read_csv(vaccines.file.path,
+                                     n_max = n.max,
+                                     col_types = cols(
+                                      sexo = col_character(),
+                                      grupo_etario = col_character(),
+                                      jurisdiccion_residencia = col_character(),
+                                      jurisdiccion_residencia_id = col_character(),
+                                      depto_residencia = col_character(),
+                                      depto_residencia_id = col_character(),
+                                      jurisdiccion_aplicacion = col_character(),
+                                      jurisdiccion_aplicacion_id = col_character(),
+                                      depto_aplicacion = col_character(),
+                                      depto_aplicacion_id = col_character(),
+                                      fecha_aplicacion = col_date(format = ""),
+                                      vacuna = col_character(),
+                                      cod_dosis_generica = col_double(),
+                                      nombre_dosis_generica = col_character(),
+                                      condicion_aplicacion = col_character(),
+                                      orden_dosis = col_double(),
+                                      lote_vacuna = col_character()
+                                     ))
+      #names(vaccines.df)
+      #unique(vaccines.df$grupo_etario)
+      vaccines.df %<>% mutate(fecha_inmunidad = fecha_aplicacion)
+      vaccines.df %<>% mutate(sepi_fis = as.numeric(as.character(fecha_inmunidad, format = "%W")))
+      vaccines.df %<>% mutate(year_fis = as.numeric(as.character(fecha_inmunidad, format = "%Y")))
+
+      self$vaccines.agg.df <- vaccines.df %>%
+       #filter(grupo_etario %in% grupos_etarios) %>%
+       group_by(year_fis, sepi_fis, jurisdiccion_residencia, depto_residencia, orden_dosis, grupo_etario) %>%
+       summarize(applications = n())
+      #Cumsum applications
+      self$vaccines.agg.df %<>%
+       ungroup(year_fis, sepi_fis) %>%
+       mutate(cum.applications = cumsum(applications))
+
+     }
 
      # self$provincias.departamentos.edad.df %>%
      #  filter(departamento == "Almirante Brown" & grupo == "30-39")

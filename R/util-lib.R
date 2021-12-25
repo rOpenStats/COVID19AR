@@ -216,6 +216,23 @@ getLogger <- function(r6.object){
   ret
 }
 
+
+#' loggerSetupFile
+#' @param log.file
+#' @import lgr
+#' @export
+loggerSetupFile <- function(log.file) {
+ lgr::basic_config()
+ lgr::get_logger("root")$add_appender(AppenderFile$new(log.file,
+                                                       layout = LayoutFormat$new(
+                                                        fmt = "%L [%t] %m %j",
+                                                        timestamp_fmt = "%Y-%m-%d %H:%M:%OS3",
+                                                        colors = NULL,
+                                                        pad_levels = "right"
+                                                       )
+ ))
+}
+
 #' fixEncoding return filepath with encoding in UTF8
 #' @import readr
 #' @author kenarab
@@ -298,4 +315,13 @@ getMaxDate <- function(covid19ar.data, report.date){
   max.dates <- apply(covid19ar.data[,date.fields], MARGIN = 2, FUN = function(x){max(x, na.rm = TRUE)})
   max.date <- max(max.dates)
   max.date
+}
+
+#' removeQuotes
+#' @export
+removeQuotes <- function(df, fields, quotes.regexp = "\"", quotes.replacement = ""){
+ for (field in fields){
+  df[, field] <- gsub(quotes.regexp, quotes.replacement, df[, field])
+ }
+ df
 }

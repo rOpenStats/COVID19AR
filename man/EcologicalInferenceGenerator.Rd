@@ -15,7 +15,8 @@ kenarab
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{EcologicalInferenceGenerator$new()}}
-\item \href{#method-loadFilesFromMinSal}{\code{EcologicalInferenceGenerator$loadFilesFromMinSal()}}
+\item \href{#method-preprocessCases}{\code{EcologicalInferenceGenerator$preprocessCases()}}
+\item \href{#method-preprocessVaccines}{\code{EcologicalInferenceGenerator$preprocessVaccines()}}
 \item \href{#method-preprocessMinSal}{\code{EcologicalInferenceGenerator$preprocessMinSal()}}
 \item \href{#method-LoadDataFromCovidStats}{\code{EcologicalInferenceGenerator$LoadDataFromCovidStats()}}
 \item \href{#method-makeEcologicalInference}{\code{EcologicalInferenceGenerator$makeEcologicalInference()}}
@@ -36,11 +37,26 @@ kenarab
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-loadFilesFromMinSal"></a>}}
-\if{latex}{\out{\hypertarget{method-loadFilesFromMinSal}{}}}
-\subsection{Method \code{loadFilesFromMinSal()}}{
+\if{html}{\out{<a id="method-preprocessCases"></a>}}
+\if{latex}{\out{\hypertarget{method-preprocessCases}{}}}
+\subsection{Method \code{preprocessCases()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$loadFilesFromMinSal(n.max = Inf)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$preprocessCases(
+  n.max = 3e+06,
+  force.preprocess = FALSE
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-preprocessVaccines"></a>}}
+\if{latex}{\out{\hypertarget{method-preprocessVaccines}{}}}
+\subsection{Method \code{preprocessVaccines()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$preprocessVaccines(
+  n.max = 3e+06,
+  force.preprocess = FALSE
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -49,7 +65,10 @@ kenarab
 \if{latex}{\out{\hypertarget{method-preprocessMinSal}{}}}
 \subsection{Method \code{preprocessMinSal()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$preprocessMinSal(n.max = 3e+06)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$preprocessMinSal(
+  n.max = 3e+06,
+  force.preprocess = FALSE
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -67,7 +86,9 @@ kenarab
 \if{latex}{\out{\hypertarget{method-makeEcologicalInference}{}}}
 \subsection{Method \code{makeEcologicalInference()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$makeEcologicalInference()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$makeEcologicalInference(
+  prediction.field = "cuidados_intensivos"
+)}\if{html}{\out{</div>}}
 }
 
 }
