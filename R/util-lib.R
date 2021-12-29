@@ -233,6 +233,16 @@ loggerSetupFile <- function(log.file) {
  ))
 }
 
+
+#' pad
+#' @export
+pad <- function(number, decimals) {
+ sprintf(
+  fmt = paste("%0", decimals, "d", sep = ""),
+  number
+ )
+}
+
 #' fixEncoding return filepath with encoding in UTF8
 #' @import readr
 #' @author kenarab

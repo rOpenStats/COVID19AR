@@ -17,6 +17,8 @@ kenarab
 \item \href{#method-new}{\code{EcologicalInferenceGenerator$new()}}
 \item \href{#method-preprocessCases}{\code{EcologicalInferenceGenerator$preprocessCases()}}
 \item \href{#method-preprocessVaccines}{\code{EcologicalInferenceGenerator$preprocessVaccines()}}
+\item \href{#method-fixVaccinesAgg}{\code{EcologicalInferenceGenerator$fixVaccinesAgg()}}
+\item \href{#method-makeVaccinesTab}{\code{EcologicalInferenceGenerator$makeVaccinesTab()}}
 \item \href{#method-preprocessMinSal}{\code{EcologicalInferenceGenerator$preprocessMinSal()}}
 \item \href{#method-LoadDataFromCovidStats}{\code{EcologicalInferenceGenerator$LoadDataFromCovidStats()}}
 \item \href{#method-makeEcologicalInference}{\code{EcologicalInferenceGenerator$makeEcologicalInference()}}
@@ -41,10 +43,7 @@ kenarab
 \if{latex}{\out{\hypertarget{method-preprocessCases}{}}}
 \subsection{Method \code{preprocessCases()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$preprocessCases(
-  n.max = 3e+06,
-  force.preprocess = FALSE
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$preprocessCases(force.preprocess = FALSE)}\if{html}{\out{</div>}}
 }
 
 }
@@ -53,9 +52,27 @@ kenarab
 \if{latex}{\out{\hypertarget{method-preprocessVaccines}{}}}
 \subsection{Method \code{preprocessVaccines()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$preprocessVaccines(
-  n.max = 3e+06,
-  force.preprocess = FALSE
+\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$preprocessVaccines(force.preprocess = FALSE)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-fixVaccinesAgg"></a>}}
+\if{latex}{\out{\hypertarget{method-fixVaccinesAgg}{}}}
+\subsection{Method \code{fixVaccinesAgg()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$fixVaccinesAgg()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-makeVaccinesTab"></a>}}
+\if{latex}{\out{\hypertarget{method-makeVaccinesTab}{}}}
+\subsection{Method \code{makeVaccinesTab()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$makeVaccinesTab(
+  vaccines.agg.covidstats.df,
+  dosis.prefix = "orden_dosis"
 )}\if{html}{\out{</div>}}
 }
 
@@ -65,10 +82,7 @@ kenarab
 \if{latex}{\out{\hypertarget{method-preprocessMinSal}{}}}
 \subsection{Method \code{preprocessMinSal()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$preprocessMinSal(
-  n.max = 3e+06,
-  force.preprocess = FALSE
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{EcologicalInferenceGenerator$preprocessMinSal(force.preprocess = FALSE)}\if{html}{\out{</div>}}
 }
 
 }
