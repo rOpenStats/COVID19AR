@@ -379,7 +379,7 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
      vaccines.agg.region.df %<>% mutate_cond(jurisdiccion_checked == jurisdiccion, region = getRegion(jurisdiccion, ""))
     }
     vaccines.agg.region.df
-    region.trim <- 0.3
+    region.trim <- 0.4
     vaccines.agg.region.agg.df <- vaccines.agg.region.df %>% group_by(region, grupo_etario) %>%
       summarize(cobertura.1.dosis.trimed = mean(cobertura.1.dosis, trim = region.trim))
     vaccines.agg.region.agg.df %>% filter(region == "PBA")

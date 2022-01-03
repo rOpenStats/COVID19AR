@@ -30,6 +30,7 @@ Imports: R6,
          httr,
          jsonlite,
          testthat,
+         networkD3,
          TTR
 Collate:
         'zzz.R'
