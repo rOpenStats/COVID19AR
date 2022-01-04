@@ -9,6 +9,3 @@ genLogger(r6.object)
 \description{
 genLogger
 }
-\author{
-kenarab
-}

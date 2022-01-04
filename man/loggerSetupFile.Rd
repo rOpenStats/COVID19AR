@@ -5,7 +5,11 @@
 \title{loggerSetupFile}
 \usage{
 loggerSetupFile(log.file)
+
+loggerSetupFile(log.file)
 }
 \description{
+loggerSetupFile
+
 loggerSetupFile
 }

@@ -43,9 +43,17 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
     if (!file.exists(cases.preprocessed.filepath) | force.preprocess){
      cases.zip.path <- file.path(self$data.dir, gsub("\\.csv", ".zip", self$cases.filename))
      dest.file <- file.path(self$working.dir, self$cases.filename)
+     #TODO auto download
      if(file.exists(cases.zip.path) & !file.exists(dest.file)){
       logger$debug("Decompressing", zip.filepath = cases.zip.path)
-      unzip(cases.zip.path, junkpaths = TRUE, exdir = self$working.dir)
+
+      #unzip(cases.zip.path, junkpaths = TRUE, exdir = self$working.dir)
+      unzip(normalizePath(cases.zip.path), junkpaths = TRUE, exdir = normalizePath(self$working.dir))
+     }
+     else{
+      if (!file.exists(cases.zip.path)){
+       stop(paste("File not found:", cases.zip.path))
+      }
      }
      dir(self$working.dir)
      cases.filepath <- file.path(self$working.dir, self$cases.filename)
@@ -162,12 +170,18 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
     vaccines.preprocessed.filepath <- file.path(self$data.dir, "vaccines_agg.csv")
     #dir(self$data.dir)[grep("vaccin", dir(self$data.dir), ignore.case = TRUE)]
     self$LoadDataFromCovidStats()
+    # TODO autodownload from
+    #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/datos_nomivac_covid19.zip
     if (!file.exists(vaccines.preprocessed.filepath) | force.preprocess ){
      if(file.exists(vaccines.zip.path) & !file.exists(dest.file)){
       logger$debug("Decompressing", zip.filepath = vaccines.zip.path)
       unzip(vaccines.zip.path, junkpaths = TRUE, exdir = self$working.dir)
      }
-
+     else{
+      if (!file.exists(vaccines.zip.path)){
+        stop(paste("File not found:", vaccines.zip.path))
+      }
+     }
      vaccines.filepath <- file.path(self$working.dir, self$vaccines.filename)
      stopifnot(file.exists(vaccines.filepath))
      #vaccines.filepath <- file.path(self$working.dir, gsub("\\.csv", "_head.csv", self$vaccines.filename))
@@ -477,7 +491,7 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
    LoadDataFromCovidStats = function(force.download = FALSE){
     logger <- getLogger(self)
     # TODO put in .env
-    data.dir <- "~/.R/COVIDAR"
+    data.dir <- getEnv("data_dir")
     vacunas.fields <- c("dosis1", "dosis2", "refuerzo", "adicional", "esquemacompleto")
     dir.create(data.dir, showWarnings = FALSE, recursive = FALSE)
     vacunaciones.filepath <- file.path(data.dir, "covidstats-vacunaciones.json")
