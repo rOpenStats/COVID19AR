@@ -12,7 +12,6 @@
 #'
 #' @param libname Library name
 #' @param pkgname Package name
-#' @import tuneR
 # execute onload
 .onLoad <- function(libname, pkgname) {
  os <- getOS()
