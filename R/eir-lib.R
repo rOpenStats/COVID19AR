@@ -4,7 +4,7 @@
 #' @importFrom R6 R6Class
 #' @import sqldf
 #' @import dplyr
-#' @reshape2
+#' @import reshape2
 #' @export
 EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
   public = list(
