@@ -44,6 +44,7 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
      cases.zip.path <- file.path(self$data.dir, gsub("\\.csv", ".zip", self$cases.filename))
      dest.file <- file.path(self$working.dir, self$cases.filename)
      #TODO auto download
+     #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip
      if(file.exists(cases.zip.path) & !file.exists(dest.file)){
       logger$debug("Decompressing", zip.filepath = cases.zip.path)
 
