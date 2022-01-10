@@ -12,7 +12,8 @@ retrieveURL(
   force.download = FALSE,
   download.new.data = TRUE,
   daily.update.time = "20:00:00",
-  download.timeout = 480
+  download.timeout = 480,
+  logger = lgr
 )
 }
 \description{

@@ -31,13 +31,13 @@ retrieveURL <- function(data.url, col.types,
                         force.download = FALSE,
                         download.new.data = TRUE,
                         daily.update.time = "20:00:00",
-                        download.timeout = 480){
+                        download.timeout = 480,
+                        logger = lgr){
   current.date <- Sys.Date()
-  logger <- lgr
   dest.path <- file.path(dest.dir, dest.filename)
   ret <- FALSE
   exists.dest.path <- file.exists(dest.path)
-  lgr$info("Exists dest path?", dest.path = dest.path, exists.dest.path = exists.dest.path)
+  logger$info("Exists dest path?", dest.path = dest.path, exists.dest.path = exists.dest.path)
   download.flag <- dir.exists(dest.dir)
   if (download.flag){
       download.flag <- !file.exists(dest.path)
@@ -64,7 +64,7 @@ retrieveURL <- function(data.url, col.types,
         stop(paste("Dest dir does not exists", dest.dir = dest.dir))
     }
   if (download.flag | force.download){
-    lgr$info("Retrieving", url = data.url, dest.path = dest.path)
+    logger$info("Retrieving", url = data.url, dest.path = dest.path)
     options(timeout = download.timeout)
     download.file(url = data.url, destfile = dest.path)
     ret <- TRUE
@@ -131,8 +131,8 @@ genDateSubdir <- function(home.dir, create.dir = TRUE){
 #' @import utils
 #' @author kenarab
 #' @export
-zipFile <- function(home.dir, current.file, rm.original = TRUE, overwrite = FALSE, minimum.size.accepted = 2000){
- logger <- lgr
+zipFile <- function(home.dir, current.file, rm.original = TRUE, overwrite = FALSE, minimum.size.accepted = 2000,
+                    logger = lgr){
  # Do not zip zip files
  if (!grepl("zip$", current.file)){
   current.filepath <- file.path(home.dir, current.file)
@@ -156,7 +156,7 @@ zipFile <- function(home.dir, current.file, rm.original = TRUE, overwrite = FALS
     current.filepath <- path.expand(current.filepath)
     current.file.zipped <- path.expand(current.file.zipped)
     #current.filepath <- normalizePath(current.filepath)
-    lgr$info(paste("Zipping", current.filepath))
+    logger$info(paste("Zipping", current.filepath))
     ret <- utils::zip(current.file.zipped, files = current.filepath)
     if (rm.original){
      unlink(current.filepath)
@@ -348,3 +348,57 @@ removeQuotes <- function(df, fields, quotes.regexp = "\"", quotes.replacement = 
  }
  df
 }
+
+
+#' getSizeFormatted
+#' @export
+getSizeFormatted <- function(size, unit = NULL, digits = 2){
+ log.10.size <- log(size, base = 10)
+ if (!is.null(unit)){
+  if (unit == "B"){
+   log.10.size <- 1
+  }
+  if (unit == "KB"){
+   log.10.size <- 3
+  }
+  if (unit == "MB"){
+   log.10.size <- 6
+  }
+  if (unit == "GB"){
+   log.10.size <- 9
+  }
+  if (unit == "TB"){
+   log.10.size <- 12
+  }
+ }
+ if (log.10.size >= 3){
+  if (log.10.size >= 6){
+   if (log.10.size >= 9){
+    if (log.10.size >= 12){
+     digit.threshold <- 12
+     unit <- "TB"
+    }
+    else{
+     digit.threshold <- 9
+     unit <- "GB"
+    }
+   }
+   else{
+    digit.threshold <- 6
+    unit <- "MB"
+   }
+  }
+  else{
+   digit.threshold <- 3
+   unit <- "KB"
+  }
+  size.ret <- round(size / 10 ^ digit.threshold, digits)
+ }
+ else{
+  unit <- "B"
+  size.ret <- size
+ }
+ ret <- c(size.ret, unit)
+ ret
+}
+

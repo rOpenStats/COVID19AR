@@ -27,7 +27,8 @@ COVID19ARCurator <- R6Class("COVID19ARCurator",
                           download.new.data = TRUE){
      self$report.date <- report.date
      self$data.dir <- data.dir
-     self$url      <- "https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.csv"
+     #self$url      <- "https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.csv"
+     self$url      <- "https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip"
      self$download.new.data <- download.new.data
      self$logger   <- genLogger(self)
      self$setupColsSpecifications()
@@ -60,6 +61,7 @@ COVID19ARCurator <- R6Class("COVID19ARCurator",
     loadData = function(url = self$url,
                         force.download = FALSE,
                         dest.filename = NULL){
+      logger <- getLogger(self)
       self$specification <- "200603"
       if (is.null(dest.filename)){
         url.splitted <- strsplit(url, split = "/")[[1]]
@@ -69,12 +71,28 @@ COVID19ARCurator <- R6Class("COVID19ARCurator",
                                dest.filename = dest.filename,
                                col.types = self$cols.specifications[[self$specification]],
                                download.new.data = self$download.new.data,
-                               force.download = force.download)
+                               force.download = force.download,
+                               logger = logger)
       self$curated <- FALSE
+      is.zip <- grepl("\\.zip", file.path)
+      if (is.zip){
+       temp.path <- file.path(tempdir(), "Covid19AR", "processing")
+       dir.create(temp.path, showWarnings = FALSE, recursive = TRUE)
+       logger$info("Decompressing", zip.path = file.path(self$data.dir, dest.filename),
+                   temp.path = temp.path)
+       unzip(file.path(self$data.dir, dest.filename),
+             junkpaths = TRUE, exdir = temp.path)
+       filename <- strsplit(file.path, split = "/")[[1]]
+       filename <- filename[length(filename)]
+       filename <- gsub("\\.zip", ".csv", filename)
+       file.path <- file.path(temp.path, filename)
+      }
       # Fix encoding
       file.path <- fixEncoding(file.path)
-      file.info(file.path)
-
+      file.path.info <- file.info(file.path)
+      logger$info("Reading", file.path = file.path,
+                  size = paste(getSizeFormatted(file.path.info$size), collapse = ""),
+                  mtime = file.path.info$mtime)
       self$readFile(file.path)
       self$data
     },

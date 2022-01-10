@@ -9,7 +9,8 @@ zipFile(
   current.file,
   rm.original = TRUE,
   overwrite = FALSE,
-  minimum.size.accepted = 2000
+  minimum.size.accepted = 2000,
+  logger = lgr
 )
 }
 \description{
