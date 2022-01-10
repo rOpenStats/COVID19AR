@@ -400,7 +400,7 @@ exportAggregatedTables <- function(covid.ar.curator, output.dir,
 #' @export
 retrieveFromCache <- function(filename, subfolder = "curated/", logger = lgr){
   url <- paste("https://raw.githubusercontent.com/rOpenStats/COVID19ARdata/master/", subfolder, sep = "")
-  cache.path <- file.path(path, filename, sep = "")
+  cache.path <- file.path(url, filename, sep = "")
   #debug
   cache.path <<- cache.path
   logger$info("Retrieving ", cache.path = cache.path)
