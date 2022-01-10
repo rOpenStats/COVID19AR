@@ -76,16 +76,18 @@ COVID19ARCurator <- R6Class("COVID19ARCurator",
       self$curated <- FALSE
       is.zip <- grepl("\\.zip", file.path)
       if (is.zip){
-       temp.path <- file.path(tempdir(), "Covid19AR", "processing")
-       dir.create(temp.path, showWarnings = FALSE, recursive = TRUE)
-       logger$info("Decompressing", zip.path = file.path(self$data.dir, dest.filename),
-                   temp.path = temp.path)
-       unzip(file.path(self$data.dir, dest.filename),
-             junkpaths = TRUE, exdir = temp.path)
-       filename <- strsplit(file.path, split = "/")[[1]]
-       filename <- filename[length(filename)]
-       filename <- gsub("\\.zip", ".csv", filename)
-       file.path <- file.path(temp.path, filename)
+        temp.path <- file.path(tempdir(), "Covid19AR", "processing")
+        dir.create(temp.path, showWarnings = FALSE, recursive = TRUE)
+        filename <- strsplit(file.path, split = "/")[[1]]
+        filename <- filename[length(filename)]
+        filename <- gsub("\\.zip", ".csv", filename)
+        file.path <- file.path(temp.path, filename)
+        if (!file.exists(file.path)){
+          logger$info("Decompressing", zip.path = file.path(self$data.dir, dest.filename),
+                      temp.path = temp.path)
+          unzip(file.path(self$data.dir, dest.filename),
+                junkpaths = TRUE, exdir = temp.path)
+        }
       }
       # Fix encoding
       file.path <- fixEncoding(file.path)
@@ -396,9 +398,13 @@ exportAggregatedTables <- function(covid.ar.curator, output.dir,
 #' retrieveFromCache
 #' @author kenarab
 #' @export
-retrieveFromCache <- function(filename, subfolder = "curated/"){
-  path <- paste("https://raw.githubusercontent.com/rOpenStats/COVID19ARdata/master/", subfolder, sep = "")
-  read_csv(paste(path, filename, sep = ""))
+retrieveFromCache <- function(filename, subfolder = "curated/", logger = lgr){
+  url <- paste("https://raw.githubusercontent.com/rOpenStats/COVID19ARdata/master/", subfolder, sep = "")
+  cache.path <- file.path(path, filename, sep = "")
+  #debug
+  cache.path <<- cache.path
+  logger$info("Retrieving ", cache.path = cache.path)
+  read_csv(cache.path)
   #TODO check the names of the destination filename matches with expected names
 
 }

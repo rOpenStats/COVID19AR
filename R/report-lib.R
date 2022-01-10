@@ -14,7 +14,7 @@ ReportGeneratorCOVID19AR <- R6Class("ReportGeneratorCOVID19AR",
    departamentos.ranking = NA,
    covid19.ar.summary = NA,
    ma.n = NA,
-   initialize = function(covid19ar.curator, ma.n = 3){
+   initialize = function(covid19ar.curator, ma.n = 7){
       # Manual type check
       stopifnot(inherits(covid19ar.curator, "COVID19ARCurator"))
       self$covid19ar.curator <- covid19ar.curator
@@ -23,10 +23,11 @@ ReportGeneratorCOVID19AR <- R6Class("ReportGeneratorCOVID19AR",
    },
    preprocess = function(){
       self$report.date <- as.Date(self$covid19ar.curator$max.date)
-      max.date.complete <- self$report.date - 1
       covid19.ar.summary <- self$covid19ar.curator$makeSummary(group.vars = c("residencia_provincia_nombre", "residencia_departamento_nombre", "fecha_apertura"),
                                                           cache.filename = "covid19ar_residencia_provincia_nombre-residencia_departamento_nombre-fecha_apertura.csv")
 
+      #max.date.complete <- self$report.date - 1
+      max.date.complete <- max(covid19.ar.summary$fecha_apertura)
       # CABA reports data twice
       nrow(covid19.ar.summary)
       covid19.ar.summary %<>% filter(!(residencia_provincia_nombre == "CABA" & residencia_departamento_nombre == "SIN ESPECIFICAR"))
@@ -57,7 +58,11 @@ ReportGeneratorCOVID19AR <- R6Class("ReportGeneratorCOVID19AR",
       covid19.ar.summary %<>% inner_join(departamentos.calculate, by = "departamento")
       nrow(covid19.ar.summary)
       length(unique(covid19.ar.summary$departamento))
-      covid19.ar.summary %<>% group_by(departamento) %>% mutate(confirmados.smoothed = runMean(confirmados, self$ma.n))
+      covid19.ar.summary %<>% mutate(confirmados.smoothed = as.numeric(NA))
+      covid19.ar.summary %<>%
+       group_by(departamento) %>%
+       filter(n() >= self$ma.n) %>%
+       mutate(confirmados.smoothed = runMean(confirmados, n = self$ma.n))
       self$covid19.ar.summary <- covid19.ar.summary
    },
    getDepartamentosExponentialGrowthPlot = function(n.highlighted = 10){
