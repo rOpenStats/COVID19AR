@@ -2,8 +2,8 @@
 
 export(COVID19ARCurator)
 export(COVID19ARDiffSummarizer)
+export(COVID19ARpreprocessor)
 export(ConsolidatedDeathsData.class)
-export(EcologicalInferenceGenerator)
 export(EdadCoder)
 export(ReportGeneratorCOVID19AR)
 export(TestCaseCOVID19ARGenerator)

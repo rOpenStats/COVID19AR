@@ -1,12 +1,12 @@
 
-#' EcologicalInferenceGenerator
+#' COVID19ARpreprocessor
 #' @author kenarab
 #' @importFrom R6 R6Class
 #' @import sqldf
 #' @import dplyr
 #' @import reshape2
 #' @export
-EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
+COVID19ARpreprocessor <- R6Class("COVID19ARpreprocessor",
   public = list(
    use.sqlfd    = TRUE,
    data.dir     = NA,
@@ -42,12 +42,24 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
     cases.preprocessed.filepath <- file.path(self$data.dir, "cases_agg.csv")
     if (!file.exists(cases.preprocessed.filepath) | force.preprocess){
      cases.zip.path <- file.path(self$data.dir, gsub("\\.csv", ".zip", self$cases.filename))
+     download <- !file.exists(cases.zip.path)
+     if (!download){
+      cases.info <- file.info(cases.zip.path)
+      if (cases.info$mtime < Sys.time() - 60*60*19 | cases.info$size < 300000000){
+       download <- TRUE
+      }
+     }
+     if (download){
+      #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip
+      download.file("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip", destfile = cases.zip.path,
+                    method = "wget",
+                    mode = "wb")
+     }
+     cases.zip.path <<- cases.zip.path
      dest.file <- file.path(self$working.dir, self$cases.filename)
-     #TODO auto download
-     #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip
+
      if(file.exists(cases.zip.path) & !file.exists(dest.file)){
       logger$debug("Decompressing", zip.filepath = cases.zip.path)
-
       #unzip(cases.zip.path, junkpaths = TRUE, exdir = self$working.dir)
       unzip(normalizePath(cases.zip.path), junkpaths = TRUE, exdir = normalizePath(self$working.dir))
      }
@@ -167,12 +179,28 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
     logger <- getLogger(self)
     #self$data.dir <- "~/../Downloads/"
     vaccines.zip.path <- file.path(self$data.dir, gsub("\\.csv", ".zip", self$vaccines.filename))
+    download <- !file.exists(vaccines.zip.path)
+    if (!download){
+     vaccines.info <- file.info(vaccines.zip.path)
+     if (vaccines.info$mtime < Sys.time() - 60*60*19 |
+         vaccines.info$size < 1000000000){
+      download <- TRUE
+     }
+    }
+    if (download){
+     #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip
+     download.file("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/datos_nomivac_covid19.zip", destfile = vaccines.zip.path,
+                   mode = "wb"
+                   )
+    }
+
+
     dest.file <- file.path(self$working.dir, self$vaccines.filename)
     vaccines.preprocessed.filepath <- file.path(self$data.dir, "vaccines_agg.csv")
     #dir(self$data.dir)[grep("vaccin", dir(self$data.dir), ignore.case = TRUE)]
     self$LoadDataFromCovidStats()
     # TODO autodownload from
-    #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/datos_nomivac_covid19.zip
+    #
     if (!file.exists(vaccines.preprocessed.filepath) | force.preprocess ){
      if(file.exists(vaccines.zip.path) & !file.exists(dest.file)){
       logger$debug("Decompressing", zip.filepath = vaccines.zip.path)
@@ -279,7 +307,7 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
 
    },
    fixVaccinesAgg = function(){
-
+    logger <- getLogger(self)
     # self$provincias.departamentos.edad.df %>%
     #  filter(departamento == "Almirante Brown" & grupo == "30-39")
     # Match departamentos
@@ -452,6 +480,7 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
     vaccines.agg.covidstats.df
    },
    makeVaccinesTab = function(vaccines.agg.covidstats.df, dosis.prefix = "orden_dosis"){
+    logger <- getLogger(self)
     # vaccines.df <- self$vaccines.agg.df %>%
     #  group_by(year_fis, week_fis, jurisdiccion_checked, departamento_checked, grupo_etario, orden_dosis) %>%
     #  summarize(applications = max(cum.applications))
@@ -486,6 +515,7 @@ EcologicalInferenceGenerator <- R6Class("EcologicalInferenceGenerator",
    },
    preprocessMinSal = function(force.preprocess = FALSE){
     logger <- getLogger(self)
+    stopifnot(dir.exists(self$data.dir))
     self$preprocessCases(force.preprocess = force.preprocess)
     self$preprocessVaccines(force.preprocess = force.preprocess)
    },
