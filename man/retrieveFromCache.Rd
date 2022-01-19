@@ -4,7 +4,7 @@
 \alias{retrieveFromCache}
 \title{retrieveFromCache}
 \usage{
-retrieveFromCache(filename, subfolder = "curated/")
+retrieveFromCache(filename, subfolder = "curated/", logger = lgr)
 }
 \description{
 retrieveFromCache

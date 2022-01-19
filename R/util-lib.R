@@ -402,3 +402,25 @@ getSizeFormatted <- function(size, unit = NULL, digits = 2){
  ret
 }
 
+#' checkFileDownload
+#' @export
+checkFileDownload <- function (filepath, update.ts = Sys.time(), min.ts.diff = 12 * 60 * 60,
+                               min.size = Inf){
+ ret <- TRUE
+ if (file.exists(filepath)){
+   current.file.info <- file.info(filepath)
+   observed.ts.diff  <- as.numeric(difftime(update.ts, current.file.info$mtime, unit = "secs" ))
+   ret <- observed.ts.diff >= min.ts.diff | current.file.info$size < min.size
+ }
+ ret
+}
+
+#' binaryDownload
+#' @import RCurl
+#' @export
+binaryDownload <- function(url, file){
+ f <- CFILE(file, mode="wb")
+ a <- curlPerform(url = url, writedata = f@ref, noprogress=FALSE)
+ close(f)
+ a
+}

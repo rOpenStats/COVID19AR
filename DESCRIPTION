@@ -16,8 +16,10 @@ Depends: R (>= 3.6),
          sqldf,
          dplyr,
          dtplyr,
+         zoo,
          knitr,
          magrittr,
+         RCurl,
          lgr
 Imports: R6,
          ggplot2,
@@ -40,4 +42,6 @@ Collate:
         'COVID19AR-lib.R'
         'report-lib.R'
         'util-lib.R'
+        'summarize-lib.R'
+        'csv_to_sql.R'
 RoxygenNote: 7.1.2
