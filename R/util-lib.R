@@ -18,8 +18,13 @@ getEnv <- function(variable.name, package.prefix = getPackagePrefix(),  fail.on.
  }
  ret
 }
-
-
+#' getLogsDir
+#' @export
+getLogsDir <- function(){
+  logs.dir <- file.path(getEnv("data_dir"), "logs")
+  dir.create(logs.dir, showWarnings = FALSE, recursive = TRUE)
+  logs.dir
+}
 
 #' retrieveURL
 #' @import lgr
@@ -421,6 +426,6 @@ checkFileDownload <- function (filepath, update.ts = Sys.time(), min.ts.diff = 1
 binaryDownload <- function(url, file){
  f <- CFILE(file, mode="wb")
  a <- curlPerform(url = url, writedata = f@ref, noprogress=FALSE)
- close(f)
+ #close(f)
  a
 }

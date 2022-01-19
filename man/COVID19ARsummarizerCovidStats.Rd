@@ -11,25 +11,33 @@ COVID19ARsummarizerCovidStats
 \author{
 kenarab
 }
+\section{Super class}{
+\code{\link[COVID19AR:COVID19ARsummarizer]{COVID19AR::COVID19ARsummarizer}} -> \code{COVID19ARsummarizerCovidStats}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{COVID19ARsummarizerCovidStats$new()}}
 \item \href{#method-preprocess}{\code{COVID19ARsummarizerCovidStats$preprocess()}}
+\item \href{#method-aggregate}{\code{COVID19ARsummarizerCovidStats$aggregate()}}
 \item \href{#method-generateOutputJson}{\code{COVID19ARsummarizerCovidStats$generateOutputJson()}}
 \item \href{#method-clone}{\code{COVID19ARsummarizerCovidStats$clone()}}
 }
+}
+\if{html}{
+\out{<details open ><summary>Inherited methods</summary>}
+\itemize{
+\item \out{<span class="pkg-link" data-pkg="COVID19AR" data-topic="COVID19ARsummarizer" data-id="generateJson">}\href{../../COVID19AR/html/COVID19ARsummarizer.html#method-generateJson}{\code{COVID19AR::COVID19ARsummarizer$generateJson()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="COVID19AR" data-topic="COVID19ARsummarizer" data-id="saveJson">}\href{../../COVID19AR/html/COVID19ARsummarizer.html#method-saveJson}{\code{COVID19AR::COVID19ARsummarizer$saveJson()}}\out{</span>}
+}
+\out{</details>}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerCovidStats$new(
-  data.dir = getEnv("data_dir"),
-  cases.filename = "Covid19Casos.csv",
-  vaccines.filename = "datos_nomivac_covid19.csv"
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerCovidStats$new(data.dir = getEnv("data_dir"))}\if{html}{\out{</div>}}
 }
 
 }
@@ -39,6 +47,15 @@ kenarab
 \subsection{Method \code{preprocess()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerCovidStats$preprocess(force.download = FALSE)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-aggregate"></a>}}
+\if{latex}{\out{\hypertarget{method-aggregate}{}}}
+\subsection{Method \code{aggregate()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerCovidStats$aggregate()}\if{html}{\out{</div>}}
 }
 
 }

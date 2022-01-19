@@ -8,13 +8,13 @@
 #' @export
 COVID19ARpreprocessor <- R6Class("COVID19ARpreprocessor",
   public = list(
-   use.sqlfd    = TRUE,
-   data.dir     = NA,
-   working.dir  = NA,
-   cases.filename = NA,
+   use.sqlfd         = TRUE,
+   data.dir          = NA,
+   working.dir       = NA,
+   cases.filename    = NA,
    vaccines.filename = NA,
-   edad.coder   = NA,
-   population.df = NA,
+   edad.coder        = NA,
+   population.df     = NA,
    # Consolidated
    provincias.departamentos.edad.df = NA,
    cases.agg.df = NA,

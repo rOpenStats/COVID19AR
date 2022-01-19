@@ -5,9 +5,10 @@
 \title{checkFileDownload}
 \usage{
 checkFileDownload(
-  file.path,
+  filepath,
   update.ts = Sys.time(),
-  min.ts.diff = 12 * 60 * 60
+  min.ts.diff = 12 * 60 * 60,
+  min.size = Inf
 )
 }
 \description{

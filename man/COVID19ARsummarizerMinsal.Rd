@@ -11,6 +11,9 @@ COVID19ARsummarizerMinsal
 \author{
 kenarab
 }
+\section{Super class}{
+\code{\link[COVID19AR:COVID19ARsummarizer]{COVID19AR::COVID19ARsummarizer}} -> \code{COVID19ARsummarizerMinsal}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -18,11 +21,20 @@ kenarab
 \item \href{#method-preprocessCasesMinsal}{\code{COVID19ARsummarizerMinsal$preprocessCasesMinsal()}}
 \item \href{#method-preprocessVaccinesMinsal}{\code{COVID19ARsummarizerMinsal$preprocessVaccinesMinsal()}}
 \item \href{#method-makeVaccinesTab}{\code{COVID19ARsummarizerMinsal$makeVaccinesTab()}}
-\item \href{#method-preprocessMinSal}{\code{COVID19ARsummarizerMinsal$preprocessMinSal()}}
+\item \href{#method-preprocess}{\code{COVID19ARsummarizerMinsal$preprocess()}}
 \item \href{#method-LoadDataFromCovidStats}{\code{COVID19ARsummarizerMinsal$LoadDataFromCovidStats()}}
 \item \href{#method-generateOutputJson}{\code{COVID19ARsummarizerMinsal$generateOutputJson()}}
 \item \href{#method-clone}{\code{COVID19ARsummarizerMinsal$clone()}}
 }
+}
+\if{html}{
+\out{<details open ><summary>Inherited methods</summary>}
+\itemize{
+\item \out{<span class="pkg-link" data-pkg="COVID19AR" data-topic="COVID19ARsummarizer" data-id="aggregate">}\href{../../COVID19AR/html/COVID19ARsummarizer.html#method-aggregate}{\code{COVID19AR::COVID19ARsummarizer$aggregate()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="COVID19AR" data-topic="COVID19ARsummarizer" data-id="generateJson">}\href{../../COVID19AR/html/COVID19ARsummarizer.html#method-generateJson}{\code{COVID19AR::COVID19ARsummarizer$generateJson()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="COVID19AR" data-topic="COVID19ARsummarizer" data-id="saveJson">}\href{../../COVID19AR/html/COVID19ARsummarizer.html#method-saveJson}{\code{COVID19AR::COVID19ARsummarizer$saveJson()}}\out{</span>}
+}
+\out{</details>}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
@@ -68,11 +80,11 @@ kenarab
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-preprocessMinSal"></a>}}
-\if{latex}{\out{\hypertarget{method-preprocessMinSal}{}}}
-\subsection{Method \code{preprocessMinSal()}}{
+\if{html}{\out{<a id="method-preprocess"></a>}}
+\if{latex}{\out{\hypertarget{method-preprocess}{}}}
+\subsection{Method \code{preprocess()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerMinsal$preprocessMinSal(force.preprocess = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerMinsal$preprocess(force.download = FALSE)}\if{html}{\out{</div>}}
 }
 
 }

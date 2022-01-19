@@ -16,6 +16,7 @@ kenarab
 \itemize{
 \item \href{#method-new}{\code{COVID19ARsummarizer$new()}}
 \item \href{#method-preprocess}{\code{COVID19ARsummarizer$preprocess()}}
+\item \href{#method-aggregate}{\code{COVID19ARsummarizer$aggregate()}}
 \item \href{#method-generateJson}{\code{COVID19ARsummarizer$generateJson()}}
 \item \href{#method-saveJson}{\code{COVID19ARsummarizer$saveJson()}}
 \item \href{#method-clone}{\code{COVID19ARsummarizer$clone()}}
@@ -36,6 +37,15 @@ kenarab
 \subsection{Method \code{preprocess()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizer$preprocess()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-aggregate"></a>}}
+\if{latex}{\out{\hypertarget{method-aggregate}{}}}
+\subsection{Method \code{aggregate()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizer$aggregate()}\if{html}{\out{</div>}}
 }
 
 }

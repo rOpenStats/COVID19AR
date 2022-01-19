@@ -156,10 +156,13 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
     working.dir  = NA,
     cases.filename = NA,
     vaccines.filename = NA,
+    # db
+    cases.db.file = NA,
+    vacciones.db.file = NA,
     # Consolidated
     cases.agg.df = NA,
     vaccines.agg.df = NA,
-    #
+    processing.log = NULL,
     initialize = function(data.dir = getEnv("data_dir"),
                           cases.filename = "Covid19Casos.csv",
                           vaccines.filename = "datos_nomivac_covid19.csv"
@@ -167,6 +170,7 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
      super$initialize(data.dir)
      self$cases.filename <- cases.filename
      self$vaccines.filename <- vaccines.filename
+     self$processing.log <- data.frame(key = character(), begin.end = character(), ts = pos)
      self
     },
     preprocessCasesMinsal = function(force.preprocess = FALSE){
@@ -183,9 +187,9 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
         binaryDownload("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip", cases.zip.path)
      }
      dest.file <- file.path(self$working.dir, self$cases.filename)
-
+     logger$debug("Checking", cases.zip.path = cases.zip.path)
      if(file.exists(cases.zip.path) & !file.exists(dest.file)){
-      logger$debug("Decompressing", zip.filepath = cases.zip.path)
+      logger$info("Decompressing", zip.filepath = cases.zip.path)
       #unzip(cases.zip.path, junkpaths = TRUE, exdir = self$working.dir)
       unzip(normalizePath(cases.zip.path), junkpaths = TRUE, exdir = normalizePath(self$working.dir))
      }
@@ -199,7 +203,26 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
      stopifnot(file.exists(cases.filepath))
      logger$debug("Loading",
                   cases.df = cases.filepath)
-     stop("Under Construction")
+     self$cases.db.file <- tempfile()
+     cases.sql.text <- paste("select replace(fecha_apertura, '\"', '') fecha_apertura,
+                                     sum(CASE WHEN clasificacion_resumen == '\"Confirmado\"' THEN 1 ELSE 0) positivos,
+                                     count(*) diagnosticos,
+                                     sum(CASE WHEN cuidado_intensivo == '\"SI\"' THEN 1 ELSE 0) cuidados_intensivos,
+                                     sum(CASE WHEN fecha_internacion == '\"\"' THEN 1 ELSE 0) internados,
+                                     sum(CASE WHEN fallecido == '\"SI\"' THEN 1 ELSE 0) fallecidos
+                               from file")
+     cases.file.info <- file.info(cases.filepath)
+     logger$debug("Generating sqldf db and cases.agg.df",
+                  cases.filepath = cases.filepath,
+                  size = paste(getSizeFormatted(cases.file.info$size), collapse = ""))
+     self$cases.agg.df <- read.csv.sql(cases.filepath,
+                   sql = cases.sql.text,
+                   dbname = self$cases.db.file,
+                   #dbname = NULL,
+                   header = TRUE, sep = ",")
+     logger$debug("Running query repeated cases",
+                  cases.filepath = cases.filepath,
+                  size = paste(getSizeFormatted(cases.file.info$size), collapse = ""))
     },
     preprocessVaccinesMinsal = function(force.preprocess = FALSE){
      logger <- getLogger(self)
