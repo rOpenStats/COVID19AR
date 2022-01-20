@@ -1,23 +1,50 @@
 #' getEnv
-#' @author kenarab
+#' @author ken4rab
 #' @export
-getEnv <- function(variable.name, package.prefix = getPackagePrefix(),  fail.on.empty = TRUE, env.file = "~/.Renviron", call.counter = 0){
- prefixed.variable.name <- paste(package.prefix, variable.name, sep ="")
- ret <- Sys.getenv(prefixed.variable.name)
- if (nchar(ret) == 0){
-  if (call.counter == 0){
-    readRenviron(env.file)
-    ret <- getEnv(variable.name = variable.name, package.prefix = package.prefix,
-                  fail.on.empty = fail.on.empty, env.file = env.file,
-                  call.counter = call.counter + 1)
+getEnv <- function(variable.name, package.prefix = getPackagePrefix(), fail.on.empty = TRUE,
+                   env.file = "~/.Renviron", call.counter = 0, refresh.env = FALSE,
+                   logger = lgr) {
+ if (refresh.env) {
+  readRenviron(env.file)
+  # this does not work
+  # dotenv::load_dot_env()
+  readRenviron(".env")
+ }
+ prefixed.variable.name <- paste(package.prefix, variable.name, sep = "")
+ # First look for parameter without prefix, expected in .env
+ ret <- Sys.getenv(variable.name)
+ if (nchar(ret) == 0) {
+  # If not found, then look for parameter with prefix, expected in .Renviron
+  ret <- Sys.getenv(prefixed.variable.name)
+ }
+ if (nchar(ret) == 0) {
+  if (call.counter == 0) {
+   readRenviron(env.file)
+   ret <- getEnv(
+    variable.name = variable.name, package.prefix = package.prefix,
+    fail.on.empty = fail.on.empty, env.file = env.file,
+    call.counter = call.counter + 1
+   )
+  } else {
+   message <- paste(
+    "Must configure variable",
+    prefixed.variable.name,
+    "in", env.file,
+    "or", variable.name,
+    "in", ".env"
+   )
+   if (fail.on.empty) {
+    stop(message)
+   } else {
+    logger$warn(message)
+    ret <- NULL
+   }
   }
-  else{
-    stop(paste("Must configure variable", prefixed.variable.name, " in", env.file))
-  }
-
  }
  ret
 }
+
+
 #' getLogsDir
 #' @export
 getLogsDir <- function(){
@@ -429,3 +456,28 @@ binaryDownload <- function(url, file){
  #close(f)
  a
 }
+
+unzipSystem <- function(zip.path, args = "-oj", exdir = self$working.dir, logger = lgr){
+ ret <- NULL
+ current.dir <- getwd()
+ tryCatch({
+  setwd(exdir)
+  zip.command <- "unzip"
+  args <- c("-o", # include override flag
+            zip.path)
+  logger$debug("Executing", command = zip.command,
+               args = paste(args, collapse = " "),
+               exdir = exdir )
+  ret <-
+   system2(zip.command,
+           args = args,
+           stdout = TRUE)
+ },
+ error = function(e){
+  logger$error("Found error where uncompressing", e = e)
+  setwd(current.dir)
+ })
+ setwd(current.dir)
+ ret
+}
+

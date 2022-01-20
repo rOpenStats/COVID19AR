@@ -22,3 +22,6 @@ Desktop.ini
 **/.RData
 
 .Rproj.user
+
+# env
+.env

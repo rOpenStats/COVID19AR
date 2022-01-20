@@ -156,6 +156,8 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
     working.dir  = NA,
     cases.filename = NA,
     vaccines.filename = NA,
+    cases.csv.filepath = NA,
+    vaccines.csv.filepath = NA,
     # db
     cases.db.file = NA,
     vacciones.db.file = NA,
@@ -170,7 +172,7 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
      super$initialize(data.dir)
      self$cases.filename <- cases.filename
      self$vaccines.filename <- vaccines.filename
-     self$processing.log <- data.frame(key = character(), begin.end = character(), ts = pos)
+     self$processing.log <- data.frame(key = character(), begin.end = character(), ts = character())
      self
     },
     preprocessCasesMinsal = function(force.preprocess = FALSE){
@@ -190,8 +192,10 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
      logger$debug("Checking", cases.zip.path = cases.zip.path)
      if(file.exists(cases.zip.path) & !file.exists(dest.file)){
       logger$info("Decompressing", zip.filepath = cases.zip.path)
-      #unzip(cases.zip.path, junkpaths = TRUE, exdir = self$working.dir)
-      unzip(normalizePath(cases.zip.path), junkpaths = TRUE, exdir = normalizePath(self$working.dir))
+      #unzip(normalizePath(cases.zip.path), junkpaths = TRUE, exdir = normalizePath(self$working.dir))
+      unzipSystem(normalizePath(cases.zip.path), args = "-oj", exdir = self$working.dir,
+                  logger = logger)
+
      }
      else{
       if (!file.exists(cases.zip.path)){
@@ -215,7 +219,9 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
      logger$debug("Generating sqldf db and cases.agg.df",
                   cases.filepath = cases.filepath,
                   size = paste(getSizeFormatted(cases.file.info$size), collapse = ""))
-     self$cases.agg.df <- read.csv.sql(cases.filepath,
+     self$cases.csv.filepath <- cases.filepath
+     stop("Under construction")
+     self$cases.agg.df <- read.csv.sql(self$cases.csv.filepath,
                    sql = cases.sql.text,
                    dbname = self$cases.db.file,
                    #dbname = NULL,
@@ -253,7 +259,8 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
      if (!file.exists(vaccines.preprocessed.filepath) | force.preprocess ){
       if(file.exists(vaccines.zip.path) & !file.exists(dest.file)){
        logger$debug("Decompressing", zip.filepath = vaccines.zip.path)
-       unzip(vaccines.zip.path, junkpaths = TRUE, exdir = self$working.dir)
+       #unzip(vaccines.zip.path, junkpaths = TRUE, exdir = self$working.dir)
+       unzipSystem(vaccines.zip.path, args = "-oj", exdir = self$working.dir, logger = logger)
       }
       else{
        if (!file.exists(vaccines.zip.path)){

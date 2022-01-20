@@ -6,9 +6,11 @@
 #' memory. See the INBO tutorial \href{https://github.com/inbo/tutorials/blob/master/source/data-handling/large-files-R.Rmd}{Handling large files in R}
 #' to learn more about.
 #'
+#' Version modified by @kenarab
+#'
 #' @section Remark:
 #' The \code{callback} argument in the \code{read_delim_chunked} function call
-#' refers to the custom written callback function `append_to_sqlite` applied
+#' refers to the custom written callback function `append_to_sql` applied
 #' to each chunk.
 #'
 #' @param csv_file Name of the text file to convert.
@@ -20,6 +22,9 @@
 #'   individual columns (default 1000).
 #' @param chunk_size Number of lines to read for each chunk (default 50000).
 #' @param show_progress_bar Show progress bar (default TRUE).
+#' @param con = dbConnect(SQLite(), dbname = sqlite_file),
+#' @param col.spec = NULL Columns specification for read_delim
+
 #' @param ... Further arguments to be passed to \code{read_delim}.
 #'
 #' @return a SQLite database
@@ -37,9 +42,10 @@
 #' gunzip(paste0(csv.name, ".gz"))
 #' # Make a SQLite database
 #' sqlite_file <- "example2.sqlite"
+#' sqlite_conn <- dbConnect(SQLite(), dbname = sqlite_file)
 #' table_name <- "birdtracks"
-#' csv_to_sqlite(csv_file = csv.name,
-#'               sqlite_file = sqlite_file,
+#' csv_to_sql(csv_file = csv.name,
+#'               con = sqlite_conn,
 #'               table_name =table_name)
 #' # Get access to SQLite database
 #' my_db <- src_sqlite(sqlite_file, create = FALSE)
@@ -59,15 +65,21 @@
 #' @importFrom readr read_delim read_delim_chunked
 #' @importFrom dplyr %>% select_if mutate_at
 #' @importFrom lubridate is.Date is.POSIXt
-csv_to_sqlite <- function(csv_file, sqlite_file, table_name,
+csv_to_sql <- function(csv_file, table_name,
                           delim = ",",
+                          quote = "\"",
                           pre_process_size = 1000, chunk_size = 50000,
-                          show_progress_bar = TRUE, ...) {
- con <- dbConnect(SQLite(), dbname = sqlite_file)
+                          show_progress_bar = TRUE,
+                          con = dbConnect(SQLite(), dbname = sqlite_file),
+                          col.spec = NULL,
+                          ...) {
+ #con <- dbConnect(SQLite(), dbname = sqlite_file)
 
  # read a first chunk of data to extract the colnames and types
  # to figure out the date and the datetime columns
- df <- read_delim(csv_file, delim = delim, n_max = pre_process_size, ...)
+ df <- read_delim(csv_file, delim = delim, n_max = pre_process_size,
+                  quote = quote,
+                  col_types = cols.spec, ...)
  date_cols <- df %>%
   select_if(is.Date) %>%
   colnames()
@@ -86,14 +98,16 @@ csv_to_sqlite <- function(csv_file, sqlite_file, table_name,
 
  read_delim_chunked(
   csv_file,
-  callback = append_to_sqlite(con = con, table_name = table_name,
+  callback = append_to_sql(con = con, table_name = table_name,
                               date_cols = date_cols,
                               datetime_cols = datetime_cols),
   delim = delim,
+  quote = quote,
   skip = pre_process_size + 1,
   chunk_size = chunk_size,
   progress = show_progress_bar,
   col_names = names(attr(df, "spec")$cols),
+  col_types = cols.spec,
   ...)
  dbDisconnect(con)
 }
@@ -106,7 +120,7 @@ csv_to_sqlite <- function(csv_file, sqlite_file, table_name,
 #' @param datetime_cols Name of columns containint POSIXt objects.
 #'
 #' @keywords internal
-append_to_sqlite <- function(con, table_name,
+append_to_sql <- function(con, table_name,
                              date_cols, datetime_cols) {
  #' @param x Data.frame we are reading from.
  function(x, pos) {
@@ -117,6 +131,5 @@ append_to_sqlite <- function(con, table_name,
    mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
   # append data frame to table
   dbWriteTable(con, table_name, x, append = TRUE)
-
  }
 }

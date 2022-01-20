@@ -9,12 +9,14 @@ getEnv(
   package.prefix = getPackagePrefix(),
   fail.on.empty = TRUE,
   env.file = "~/.Renviron",
-  call.counter = 0
+  call.counter = 0,
+  refresh.env = FALSE,
+  logger = lgr
 )
 }
 \description{
 getEnv
 }
 \author{
-kenarab
+ken4rab
 }
