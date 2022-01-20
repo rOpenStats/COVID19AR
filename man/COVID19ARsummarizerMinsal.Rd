@@ -20,10 +20,7 @@ kenarab
 \item \href{#method-new}{\code{COVID19ARsummarizerMinsal$new()}}
 \item \href{#method-preprocessCasesMinsal}{\code{COVID19ARsummarizerMinsal$preprocessCasesMinsal()}}
 \item \href{#method-preprocessVaccinesMinsal}{\code{COVID19ARsummarizerMinsal$preprocessVaccinesMinsal()}}
-\item \href{#method-makeVaccinesTab}{\code{COVID19ARsummarizerMinsal$makeVaccinesTab()}}
 \item \href{#method-preprocess}{\code{COVID19ARsummarizerMinsal$preprocess()}}
-\item \href{#method-LoadDataFromCovidStats}{\code{COVID19ARsummarizerMinsal$LoadDataFromCovidStats()}}
-\item \href{#method-generateOutputJson}{\code{COVID19ARsummarizerMinsal$generateOutputJson()}}
 \item \href{#method-clone}{\code{COVID19ARsummarizerMinsal$clone()}}
 }
 }
@@ -68,41 +65,11 @@ kenarab
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-makeVaccinesTab"></a>}}
-\if{latex}{\out{\hypertarget{method-makeVaccinesTab}{}}}
-\subsection{Method \code{makeVaccinesTab()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerMinsal$makeVaccinesTab(
-  vaccines.agg.covidstats.df,
-  dosis.prefix = "orden_dosis"
-)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-preprocess"></a>}}
 \if{latex}{\out{\hypertarget{method-preprocess}{}}}
 \subsection{Method \code{preprocess()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerMinsal$preprocess(force.download = FALSE)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-LoadDataFromCovidStats"></a>}}
-\if{latex}{\out{\hypertarget{method-LoadDataFromCovidStats}{}}}
-\subsection{Method \code{LoadDataFromCovidStats()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerMinsal$LoadDataFromCovidStats(force.download = FALSE)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-generateOutputJson"></a>}}
-\if{latex}{\out{\hypertarget{method-generateOutputJson}{}}}
-\subsection{Method \code{generateOutputJson()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerMinsal$generateOutputJson(source = "covidstats")}\if{html}{\out{</div>}}
 }
 
 }

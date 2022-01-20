@@ -457,6 +457,8 @@ binaryDownload <- function(url, file){
  a
 }
 
+#' unzipSystem
+#' @export
 unzipSystem <- function(zip.path, args = "-oj", exdir = self$working.dir, logger = lgr){
  ret <- NULL
  current.dir <- getwd()
@@ -481,3 +483,30 @@ unzipSystem <- function(zip.path, args = "-oj", exdir = self$working.dir, logger
  ret
 }
 
+
+
+
+#' unzipJarSystem
+#' @export
+unzipJarSystem <- function(zip.path, exdir = self$working.dir, logger = lgr){
+ ret <- NULL
+ current.dir <- getwd()
+ tryCatch({
+  setwd(exdir)
+  zip.command <- "jar"
+  args <- paste("xfv", zip.path)
+  logger$debug("Executing", command = zip.command,
+               args = paste(args, collapse = " "),
+               exdir = exdir )
+  ret <-
+   system2(zip.command,
+           args = args,
+           stdout = TRUE)
+ },
+ error = function(e){
+  logger$error("Found error where uncompressing", e = e)
+  setwd(current.dir)
+ })
+ setwd(current.dir)
+ ret
+}
