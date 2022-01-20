@@ -14,6 +14,9 @@ csv_to_sql(
   show_progress_bar = TRUE,
   con = dbConnect(SQLite(), dbname = sqlite_file),
   cols.spec = NULL,
+  disconnect.after = TRUE,
+  n_max = Inf,
+  logger = lgr,
   ...
 )
 }
@@ -35,6 +38,12 @@ individual columns (default 1000).}
 \item{con}{= dbConnect(SQLite(), dbname = sqlite_file),}
 
 \item{cols.spec}{= NULL Columns specification for read_delim}
+
+\item{disconnect.after}{= TRUE}
+
+\item{n_max}{= Inf}
+
+\item{logger}{= lgr}
 
 \item{...}{Further arguments to be passed to \code{read_delim}.}
 

@@ -4,7 +4,13 @@
 \alias{append_to_sql}
 \title{Callback function that appends new sections to the SQLite table.}
 \usage{
-append_to_sql(con, table_name, date_cols, datetime_cols)
+append_to_sql(
+  con,
+  table_name,
+  date_cols,
+  datetime_cols,
+  convert_dates2text = TRUE
+)
 }
 \arguments{
 \item{con}{A valid connection to SQLite database.}
@@ -15,6 +21,8 @@ database.}
 \item{date_cols}{Name of columns containing Date objects}
 
 \item{datetime_cols}{Name of columns containint POSIXt objects.}
+
+\item{convert_dates2text}{= TRUE Converting date fields to text (For sqlite db)}
 
 \item{x}{Data.frame we are reading from.}
 }

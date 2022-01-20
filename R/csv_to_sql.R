@@ -24,7 +24,9 @@
 #' @param show_progress_bar Show progress bar (default TRUE).
 #' @param con = dbConnect(SQLite(), dbname = sqlite_file),
 #' @param cols.spec = NULL Columns specification for read_delim
-
+#' @param disconnect.after = TRUE
+#' @param n_max = Inf
+#' @param logger = lgr
 #' @param ... Further arguments to be passed to \code{read_delim}.
 #'
 #' @return a SQLite database
@@ -72,12 +74,32 @@ csv_to_sql <- function(csv_file, table_name,
                           show_progress_bar = TRUE,
                           con = dbConnect(SQLite(), dbname = sqlite_file),
                           cols.spec = NULL,
+                          disconnect.after = TRUE,
+                          n_max = Inf,
+                          logger = lgr,
                           ...) {
  #con <- dbConnect(SQLite(), dbname = sqlite_file)
 
  # read a first chunk of data to extract the colnames and types
  # to figure out the date and the datetime columns
- df <- read_delim(csv_file, delim = delim, n_max = pre_process_size,
+
+ can_process <- FALSE
+ convert_dates2text <- FALSE
+ con_class <- class(con)[[1]]
+ if (con_class == "SQLiteConnection" ){
+   convert_dates2text <- TRUE
+   can_process <- TRUE
+ }
+ if (con_class == "PostgreSQLConnection" ){
+  convert_dates2text <- FALSE
+  can_process <- TRUE
+ }
+ if (!can_process){
+  stop(paste("Connection class", con_class, "not yet implemented"))
+ }
+
+ stopifnot(file.exists(csv_file))
+ df <- read_delim(csv_file, delim = delim, n_max = min(pre_process_size, n_max),
                   quote = quote,
                   col_types = cols.spec, ...)
  date_cols <- df %>%
@@ -93,23 +115,47 @@ csv_to_sql <- function(csv_file, table_name,
   mutate_at(.vars = date_cols, .funs = as.character.Date) %>%
   mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
  dbWriteTable(con, table_name, df, overwrite = TRUE)
-
+ csv_info <- file.info(csv_file)
  # readr chunk functionality
-
- read_delim_chunked(
-  csv_file,
-  callback = append_to_sql(con = con, table_name = table_name,
-                              date_cols = date_cols,
-                              datetime_cols = datetime_cols),
-  delim = delim,
-  quote = quote,
-  skip = pre_process_size + 1,
-  chunk_size = chunk_size,
-  progress = show_progress_bar,
-  col_names = names(attr(df, "spec")$cols),
-  col_types = cols.spec,
-  ...)
- dbDisconnect(con)
+ logger$info("Uploading data", table_name = table_name,
+             csv_file = csv_file,
+             file_size = getSizeFormatted(csv_info$size))
+ append.function <- append_to_sql(con = con, table_name = table_name,
+                                  date_cols = date_cols,
+                                  datetime_cols = datetime_cols,
+                                  convert_dates2text)
+ if (n_max < Inf){
+  logger$warn("read_delim instead of read_delim_chunked called as ", n_max = n_max)
+  data <- read_delim(
+   csv_file,
+   delim = delim,
+   quote = quote,
+   skip = pre_process_size + 1,
+   progress = show_progress_bar,
+   col_names = names(attr(df, "spec")$cols),
+   col_types = cols.spec,
+   n_max = n_max,
+   ...
+   )
+  append.function(data)
+ }
+ else{
+  read_delim_chunked(
+   csv_file,
+   callback = append.function,
+   delim = delim,
+   quote = quote,
+   skip = pre_process_size + 1,
+   chunk_size = chunk_size,
+   progress = show_progress_bar,
+   col_names = names(attr(df, "spec")$cols),
+   col_types = cols.spec,
+   ...)
+ }
+ logger$info("Data uploaded")
+ if (disconnect.after){
+   dbDisconnect(con)
+ }
 }
 
 #' Callback function that appends new sections to the SQLite table.
@@ -118,17 +164,21 @@ csv_to_sql <- function(csv_file, table_name,
 #'   database.
 #' @param date_cols Name of columns containing Date objects
 #' @param datetime_cols Name of columns containint POSIXt objects.
-#'
+#' @param convert_dates2text = TRUE Converting date fields to text (For sqlite db)
+#' @import magrittr
+#' @import dplyr
 #' @keywords internal
 append_to_sql <- function(con, table_name,
-                             date_cols, datetime_cols) {
+                          date_cols, datetime_cols,
+                          convert_dates2text = TRUE) {
  #' @param x Data.frame we are reading from.
  function(x, pos) {
-
   x <- as.data.frame(x)
-  x <- x %>%
-   mutate_at(.vars = date_cols, .funs = as.character.Date) %>%
-   mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
+  if (convert_dates2text){
+   x %<>%
+    mutate_at(.vars = date_cols, .funs = as.character.Date) %>%
+    mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
+  }
   # append data frame to table
   dbWriteTable(con, table_name, x, append = TRUE)
  }
