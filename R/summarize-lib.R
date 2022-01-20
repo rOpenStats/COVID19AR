@@ -263,6 +263,7 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
        }
       }
       vaccines.filepath <- file.path(self$working.dir, self$vaccines.filename)
+      self$vaccines.csv.filepath <- vaccines.filepath
       stopifnot(file.exists(vaccines.filepath))
      }
     },
