@@ -109,11 +109,13 @@ csv_to_sql <- function(csv_file, table_name,
   select_if(is.POSIXt) %>%
   colnames()
 
- # write the first batch of lines to SQLITE table, converting dates to string
- # representation
- df <- df %>%
-  mutate_at(.vars = date_cols, .funs = as.character.Date) %>%
-  mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
+ if (convert_dates2text){
+  # write the first batch of lines to SQLITE table, converting dates to string
+  # representation
+  x %<>%
+   mutate_at(.vars = date_cols, .funs = as.character.Date) %>%
+   mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
+ }
  dbWriteTable(con, table_name, df, overwrite = TRUE)
  csv_info <- file.info(csv_file)
  # readr chunk functionality
@@ -123,7 +125,7 @@ csv_to_sql <- function(csv_file, table_name,
  append.function <- append_to_sql(con = con, table_name = table_name,
                                   date_cols = date_cols,
                                   datetime_cols = datetime_cols,
-                                  convert_dates2text)
+                                  convert_dates2text = convert_dates2text)
  if (n_max < Inf){
   logger$warn("read_delim instead of read_delim_chunked called as ", n_max = n_max)
   data <- read_delim(
@@ -134,7 +136,7 @@ csv_to_sql <- function(csv_file, table_name,
    progress = show_progress_bar,
    col_names = names(attr(df, "spec")$cols),
    col_types = cols.spec,
-   n_max = n_max,
+   n_max = n_max - pre_process_size,
    ...
    )
   append.function(data)
@@ -175,11 +177,13 @@ append_to_sql <- function(con, table_name,
  function(x, pos) {
   x <- as.data.frame(x)
   if (convert_dates2text){
-   x %<>%
-    mutate_at(.vars = date_cols, .funs = as.character.Date) %>%
-    mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
+    x %<>%
+      mutate_at(.vars = date_cols, .funs = as.character.Date) %>%
+      mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
   }
   # append data frame to table
-  dbWriteTable(con, table_name, x, append = TRUE)
+  dbWriteTable(con, table_name, x, append = TRUE,
+               field.types =
+               )
  }
 }
