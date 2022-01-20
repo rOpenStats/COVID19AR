@@ -8,11 +8,12 @@ csv_to_sql(
   csv_file,
   table_name,
   delim = ",",
+  quote = "\\"",
   pre_process_size = 1000,
   chunk_size = 50000,
   show_progress_bar = TRUE,
   con = dbConnect(SQLite(), dbname = sqlite_file),
-  col.spec = NULL,
+  cols.spec = NULL,
   ...
 )
 }
@@ -33,7 +34,7 @@ individual columns (default 1000).}
 
 \item{con}{= dbConnect(SQLite(), dbname = sqlite_file),}
 
-\item{col.spec}{= NULL Columns specification for read_delim}
+\item{cols.spec}{= NULL Columns specification for read_delim}
 
 \item{...}{Further arguments to be passed to \code{read_delim}.}
 
@@ -55,7 +56,7 @@ Version modified by @kenarab
 \section{Remark}{
 
 The \code{callback} argument in the \code{read_delim_chunked} function call
-refers to the custom written callback function `append_to_sqlite` applied
+refers to the custom written callback function `append_to_sql` applied
 to each chunk.
 }
 

@@ -23,7 +23,7 @@
 #' @param chunk_size Number of lines to read for each chunk (default 50000).
 #' @param show_progress_bar Show progress bar (default TRUE).
 #' @param con = dbConnect(SQLite(), dbname = sqlite_file),
-#' @param col.spec = NULL Columns specification for read_delim
+#' @param cols.spec = NULL Columns specification for read_delim
 
 #' @param ... Further arguments to be passed to \code{read_delim}.
 #'
@@ -71,7 +71,7 @@ csv_to_sql <- function(csv_file, table_name,
                           pre_process_size = 1000, chunk_size = 50000,
                           show_progress_bar = TRUE,
                           con = dbConnect(SQLite(), dbname = sqlite_file),
-                          col.spec = NULL,
+                          cols.spec = NULL,
                           ...) {
  #con <- dbConnect(SQLite(), dbname = sqlite_file)
 
