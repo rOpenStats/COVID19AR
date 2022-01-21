@@ -156,6 +156,7 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
     working.dir  = NA,
     cases.filename = NA,
     vaccines.filename = NA,
+    download.min.ts.diff = NA,
     cases.csv.filepath = NA,
     vaccines.csv.filepath = NA,
     hour.change.day = 17,
@@ -169,20 +170,25 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
     processing.log = NULL,
     initialize = function(data.dir = getEnv("data_dir"),
                           cases.filename = "Covid19Casos.csv",
-                          vaccines.filename = "datos_nomivac_covid19.csv"
+                          vaccines.filename = "datos_nomivac_covid19.csv",
+                          download.min.ts.diff = 19*60*60
     ){
      super$initialize(data.dir)
      self$cases.filename <- cases.filename
      self$vaccines.filename <- vaccines.filename
+     self$download.min.ts.diff <- download.min.ts.diff
      self$processing.log <- data.frame(key = character(), begin.end = character(), ts = character())
      self
     },
     preprocessCasesMinsal = function(force.preprocess = FALSE){
      logger <- getLogger(self)
+     self$setCurrentDate()
      cases.preprocessed.filepath <- file.path(self$data.dir, "cases_agg.csv")
      #cases.zip.path <- file.path(self$data.dir, gsub("\\.csv", ".zip", self$cases.filename))
-     cases.zip.path <- file.path(self$data.dir, gsub("\\.csv", paste("_", self$current.date,".zip", sep = ""), self$cases.filename))
-     download <- checkFileDownload(cases.zip.path, min.ts.diff = 19*60*60, min.size = 340000000)
+     cases.zip.path <- file.path(self$data.dir, gsub("\\.csv",
+                                 paste("_", as.character(self$current.date, format = "%y%m%d"),".zip", sep = ""), self$cases.filename))
+     download <- checkFileDownload(cases.zip.path, min.ts.diff = self$download.min.ts.diff, min.size = 340000000)
+     download
      #if (cases.info$mtime < Sys.time() - 60*60*19 | cases.info$size < 300000000){
      if (download){
        #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip
@@ -235,9 +241,12 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
     },
     preprocessVaccinesMinsal = function(force.preprocess = FALSE){
      logger <- getLogger(self)
+     self$setCurrentDate()
      #self$data.dir <- "~/../Downloads/"
-     vaccines.zip.path <- file.path(self$data.dir, gsub("\\.csv", paste("_", self$current.date,".zip", sep = ""), self$vaccines.filename))
-     download <- checkFileDownload(vaccines.zip.path, min.ts.diff = 19*60*60, min.size = 1000000000)
+     vaccines.zip.path <- file.path(self$data.dir, gsub("\\.csv",
+                                                        paste("_", as.character(self$current.date, format = "%y%m%d"),".zip", sep = ""), self$vaccines.filename))
+     download <- checkFileDownload(vaccines.zip.path, min.ts.diff = self$download.min.ts.diff, min.size = 1000000000)
+     download
      #if (cases.info$mtime < Sys.time() - 60*60*19 | cases.info$size < 300000000){
      if (download){
       #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip
@@ -267,15 +276,18 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
       stopifnot(file.exists(vaccines.filepath))
      }
     },
-    preprocess = function(force.download = FALSE){
-     logger <- getLogger(self)
-     stopifnot(dir.exists(self$data.dir))
+    setCurrentDate = function(){
      day.hour <- as.numeric(as.character(Sys.time(), format = "%H"))
      self$current.date <- Sys.Date() -1
      if (day.hour > self$hour.change.day){
       self$current.date <- self$current.date + 1
      }
-     self$current.date <- as.character(self$current.date, format = "%y%m%d")
+
+    },
+    preprocess = function(force.download = FALSE){
+     logger <- getLogger(self)
+     stopifnot(dir.exists(self$data.dir))
+     #self$current.date <- as.character(self$current.date, format = "%y%m%d")
      self$preprocessCasesMinsal(force.preprocess = force.download)
      self$preprocessVaccinesMinsal(force.preprocess = force.download)
     }

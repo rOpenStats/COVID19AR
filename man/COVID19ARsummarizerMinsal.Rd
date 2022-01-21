@@ -20,6 +20,7 @@ kenarab
 \item \href{#method-new}{\code{COVID19ARsummarizerMinsal$new()}}
 \item \href{#method-preprocessCasesMinsal}{\code{COVID19ARsummarizerMinsal$preprocessCasesMinsal()}}
 \item \href{#method-preprocessVaccinesMinsal}{\code{COVID19ARsummarizerMinsal$preprocessVaccinesMinsal()}}
+\item \href{#method-setCurrentDate}{\code{COVID19ARsummarizerMinsal$setCurrentDate()}}
 \item \href{#method-preprocess}{\code{COVID19ARsummarizerMinsal$preprocess()}}
 \item \href{#method-clone}{\code{COVID19ARsummarizerMinsal$clone()}}
 }
@@ -41,7 +42,8 @@ kenarab
 \if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerMinsal$new(
   data.dir = getEnv("data_dir"),
   cases.filename = "Covid19Casos.csv",
-  vaccines.filename = "datos_nomivac_covid19.csv"
+  vaccines.filename = "datos_nomivac_covid19.csv",
+  download.min.ts.diff = 19 * 60 * 60
 )}\if{html}{\out{</div>}}
 }
 
@@ -61,6 +63,15 @@ kenarab
 \subsection{Method \code{preprocessVaccinesMinsal()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerMinsal$preprocessVaccinesMinsal(force.preprocess = FALSE)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-setCurrentDate"></a>}}
+\if{latex}{\out{\hypertarget{method-setCurrentDate}{}}}
+\subsection{Method \code{setCurrentDate()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerMinsal$setCurrentDate()}\if{html}{\out{</div>}}
 }
 
 }
