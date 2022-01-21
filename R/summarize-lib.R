@@ -255,26 +255,16 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
 
 
      dest.file <- file.path(self$working.dir, self$vaccines.filename)
-     vaccines.preprocessed.filepath <- file.path(self$data.dir, "vaccines_agg.csv")
-     #dir(self$data.dir)[grep("vaccin", dir(self$data.dir), ignore.case = TRUE)]
-     # TODO autodownload from
      #
-     if (!file.exists(vaccines.preprocessed.filepath) | force.preprocess ){
-      if(file.exists(vaccines.zip.path) & !file.exists(dest.file)){
+     if(file.exists(vaccines.zip.path) & !file.exists(dest.file)){
        logger$debug("Decompressing", zip.filepath = vaccines.zip.path)
        #unzip(vaccines.zip.path, junkpaths = TRUE, exdir = self$working.dir)
        #unzipSystem(vaccines.zip.path, args = "-oj", exdir = self$working.dir, logger = logger)
        unzipJarSystem(vaccines.zip.path, exdir = self$working.dir, logger = logger)
-      }
-      else{
-       if (!file.exists(vaccines.zip.path)){
-        stop(paste("File not found:", vaccines.zip.path))
-       }
-      }
-      vaccines.filepath <- file.path(self$working.dir, self$vaccines.filename)
-      self$vaccines.csv.filepath <- vaccines.filepath
-      stopifnot(file.exists(vaccines.filepath))
      }
+     vaccines.filepath <- file.path(self$working.dir, self$vaccines.filename)
+     self$vaccines.csv.filepath <- vaccines.filepath
+     stopifnot(file.exists(vaccines.filepath))
     },
     setCurrentDate = function(){
      day.hour <- as.numeric(as.character(Sys.time(), format = "%H"))
