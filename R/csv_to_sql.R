@@ -39,16 +39,20 @@
 #' db.name <- "2016-04-20-processed-logs-big-file-example.db"
 #' # download the CSV file example
 #' csv.url <- paste("https://s3-eu-west-1.amazonaws.com/lw-birdtracking-data/",
-#'                  csv.name, ".gz", sep = "")
+#'   csv.name, ".gz",
+#'   sep = ""
+#' )
 #' download.file(csv.url, destfile = paste0(csv.name, ".gz"))
 #' gunzip(paste0(csv.name, ".gz"))
 #' # Make a SQLite database
 #' sqlite_file <- "example2.sqlite"
 #' sqlite_conn <- dbConnect(SQLite(), dbname = sqlite_file)
 #' table_name <- "birdtracks"
-#' csv_to_sql(csv_file = csv.name,
-#'               con = sqlite_conn,
-#'               table_name =table_name)
+#' csv_to_sql(
+#'   csv_file = csv.name,
+#'   con = sqlite_conn,
+#'   table_name = table_name
+#' )
 #' # Get access to SQLite database
 #' my_db <- src_sqlite(sqlite_file, create = FALSE)
 #' bird_tracking <- tbl(my_db, "birdtracks")
@@ -68,96 +72,102 @@
 #' @importFrom dplyr %>% select_if mutate_at
 #' @importFrom lubridate is.Date is.POSIXt
 csv_to_sql <- function(csv_file, table_name,
-                          delim = ",",
-                          quote = "\"",
-                          pre_process_size = 1000, chunk_size = 50000,
-                          show_progress_bar = TRUE,
-                          con = dbConnect(SQLite(), dbname = sqlite_file),
-                          cols.spec = NULL,
-                          disconnect.after = TRUE,
-                          n_max = Inf,
-                          logger = lgr,
-                          ...) {
- #con <- dbConnect(SQLite(), dbname = sqlite_file)
+                       delim = ",",
+                       quote = "\"",
+                       pre_process_size = 1000, chunk_size = 50000,
+                       show_progress_bar = TRUE,
+                       con = dbConnect(SQLite(), dbname = sqlite_file),
+                       cols.spec = NULL,
+                       disconnect.after = TRUE,
+                       n_max = Inf,
+                       logger = lgr,
+                       ...) {
+  # con <- dbConnect(SQLite(), dbname = sqlite_file)
 
- # read a first chunk of data to extract the colnames and types
- # to figure out the date and the datetime columns
+  # read a first chunk of data to extract the colnames and types
+  # to figure out the date and the datetime columns
 
- can_process <- FALSE
- convert_dates2text <- FALSE
- con_class <- class(con)[[1]]
- if (con_class == "SQLiteConnection" ){
-   convert_dates2text <- TRUE
-   can_process <- TRUE
- }
- if (con_class == "PostgreSQLConnection" ){
+  can_process <- FALSE
   convert_dates2text <- FALSE
-  can_process <- TRUE
- }
- if (!can_process){
-  stop(paste("Connection class", con_class, "not yet implemented"))
- }
+  con_class <- class(con)[[1]]
+  if (con_class == "SQLiteConnection") {
+    convert_dates2text <- TRUE
+    can_process <- TRUE
+  }
+  if (con_class == "PostgreSQLConnection") {
+    convert_dates2text <- FALSE
+    can_process <- TRUE
+  }
+  if (!can_process) {
+    stop(paste("Connection class", con_class, "not yet implemented"))
+  }
 
- stopifnot(file.exists(csv_file))
- df <- read_delim(csv_file, delim = delim, n_max = min(pre_process_size, n_max),
-                  quote = quote,
-                  col_types = cols.spec, ...)
- date_cols <- df %>%
-  select_if(is.Date) %>%
-  colnames()
- datetime_cols <- df %>%
-  select_if(is.POSIXt) %>%
-  colnames()
+  stopifnot(file.exists(csv_file))
+  df <- read_delim(csv_file,
+    delim = delim, n_max = min(pre_process_size, n_max),
+    quote = quote,
+    col_types = cols.spec, ...
+  )
+  date_cols <- df %>%
+    select_if(is.Date) %>%
+    colnames()
+  datetime_cols <- df %>%
+    select_if(is.POSIXt) %>%
+    colnames()
 
- if (convert_dates2text){
-  # write the first batch of lines to SQLITE table, converting dates to string
-  # representation
-  x %<>%
-   mutate_at(.vars = date_cols, .funs = as.character.Date) %>%
-   mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
- }
- dbWriteTable(con, table_name, df, overwrite = TRUE)
- csv_info <- file.info(csv_file)
- # readr chunk functionality
- logger$info("Uploading data", table_name = table_name,
-             csv_file = csv_file,
-             file_size = getSizeFormatted(csv_info$size))
- append.function <- append_to_sql(con = con, table_name = table_name,
-                                  date_cols = date_cols,
-                                  datetime_cols = datetime_cols,
-                                  convert_dates2text = convert_dates2text)
- if (n_max < Inf){
-  logger$warn("read_delim instead of read_delim_chunked called as ", n_max = n_max)
-  data <- read_delim(
-   csv_file,
-   delim = delim,
-   quote = quote,
-   skip = pre_process_size + 1,
-   progress = show_progress_bar,
-   col_names = names(attr(df, "spec")$cols),
-   col_types = cols.spec,
-   n_max = n_max - pre_process_size,
-   ...
-   )
-  append.function(data)
- }
- else{
-  read_delim_chunked(
-   csv_file,
-   callback = append.function,
-   delim = delim,
-   quote = quote,
-   skip = pre_process_size + 1,
-   chunk_size = chunk_size,
-   progress = show_progress_bar,
-   col_names = names(attr(df, "spec")$cols),
-   col_types = cols.spec,
-   ...)
- }
- logger$info("Data uploaded")
- if (disconnect.after){
-   dbDisconnect(con)
- }
+  if (convert_dates2text) {
+    # write the first batch of lines to SQLITE table, converting dates to string
+    # representation
+    x %<>%
+      mutate_at(.vars = date_cols, .funs = as.character.Date) %>%
+      mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
+  }
+  dbWriteTable(con, table_name, df, overwrite = TRUE)
+  csv_info <- file.info(csv_file)
+  # readr chunk functionality
+  logger$info("Uploading data",
+    table_name = table_name,
+    csv_file = csv_file,
+    file_size = getSizeFormatted(csv_info$size)
+  )
+  append.function <- append_to_sql(
+    con = con, table_name = table_name,
+    date_cols = date_cols,
+    datetime_cols = datetime_cols,
+    convert_dates2text = convert_dates2text
+  )
+  if (n_max < Inf) {
+    logger$warn("read_delim instead of read_delim_chunked called as ", n_max = n_max)
+    data <- read_delim(
+      csv_file,
+      delim = delim,
+      quote = quote,
+      skip = pre_process_size + 1,
+      progress = show_progress_bar,
+      col_names = names(attr(df, "spec")$cols),
+      col_types = cols.spec,
+      n_max = n_max - pre_process_size,
+      ...
+    )
+    append.function(data)
+  } else {
+    read_delim_chunked(
+      csv_file,
+      callback = append.function,
+      delim = delim,
+      quote = quote,
+      skip = pre_process_size + 1,
+      chunk_size = chunk_size,
+      progress = show_progress_bar,
+      col_names = names(attr(df, "spec")$cols),
+      col_types = cols.spec,
+      ...
+    )
+  }
+  logger$info("Data uploaded")
+  if (disconnect.after) {
+    dbDisconnect(con)
+  }
 }
 
 #' Callback function that appends new sections to the SQLite table.
@@ -173,17 +183,18 @@ csv_to_sql <- function(csv_file, table_name,
 append_to_sql <- function(con, table_name,
                           date_cols, datetime_cols,
                           convert_dates2text = TRUE) {
- #' @param x Data.frame we are reading from.
- function(x, pos) {
-  x <- as.data.frame(x)
-  if (convert_dates2text){
-    x %<>%
-      mutate_at(.vars = date_cols, .funs = as.character.Date) %>%
-      mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
+  #' @param x Data.frame we are reading from.
+  function(x, pos) {
+    x <- as.data.frame(x)
+    if (convert_dates2text) {
+      x %<>%
+        mutate_at(.vars = date_cols, .funs = as.character.Date) %>%
+        mutate_at(.vars = datetime_cols, .funs = as.character.POSIXt)
+    }
+    # append data frame to table
+    dbWriteTable(con, table_name, x,
+      append = TRUE,
+      field.types =
+      )
   }
-  # append data frame to table
-  dbWriteTable(con, table_name, x, append = TRUE,
-               field.types =
-               )
- }
 }

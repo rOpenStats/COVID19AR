@@ -14,10 +14,10 @@
 #' @param pkgname Package name
 # execute onload
 .onLoad <- function(libname, pkgname) {
- os <- getOS()
- if (os == "osx") {
- }
- if (os == "windows") {
-  Sys.setlocale("LC_CTYPE","Spanish_Argentina")
- }
+  os <- getOS()
+  if (os == "osx") {
+  }
+  if (os == "windows") {
+    Sys.setlocale("LC_CTYPE", "Spanish_Argentina")
+  }
 }

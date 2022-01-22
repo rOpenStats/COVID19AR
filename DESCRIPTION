@@ -1,7 +1,7 @@
 Package: COVID19AR
 Type: Package
 Title: for analysing COVID-19 Argentina's outbreak
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("Alejandro", "Baranek",,"abaranek@dc.uba.ar", c("aut","com","cre", "cph"))
     )
