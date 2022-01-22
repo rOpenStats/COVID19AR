@@ -159,8 +159,9 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
     download.min.ts.diff = NA,
     cases.csv.filepath = NA,
     vaccines.csv.filepath = NA,
-    hour.change.day = 17,
+    hour.change.day = 21,
     current.date = NA,
+    ssl.version = NA,
     # db
     cases.db.file = NA,
     vacciones.db.file = NA,
@@ -171,12 +172,14 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
     initialize = function(data.dir = getEnv("data_dir"),
                           cases.filename = "Covid19Casos.csv",
                           vaccines.filename = "datos_nomivac_covid19.csv",
-                          download.min.ts.diff = 19*60*60
+                          download.min.ts.diff = 19*60*60,
+                          ssl.version = "1.1"
     ){
      super$initialize(data.dir)
      self$cases.filename <- cases.filename
      self$vaccines.filename <- vaccines.filename
      self$download.min.ts.diff <- download.min.ts.diff
+     self$ssl.version <- ssl.version
      self$processing.log <- data.frame(key = character(), begin.end = character(), ts = character())
      self
     },
@@ -195,7 +198,8 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
        # download.file("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip", destfile = cases.zip.path,
        #               method = "wget",
        #               mode = "wb")
-        binaryDownload("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip", cases.zip.path)
+        binaryDownload("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip", cases.zip.path,
+                       ssl.version = self$ssl.version)
      }
      dest.file <- file.path(self$working.dir, self$cases.filename)
      logger$debug("Checking", cases.zip.path = cases.zip.path)
@@ -250,7 +254,8 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
      #if (cases.info$mtime < Sys.time() - 60*60*19 | cases.info$size < 300000000){
      if (download){
       #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip
-      binaryDownload("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/datos_nomivac_covid19.zip", vaccines.zip.path)
+      binaryDownload("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/datos_nomivac_covid19.zip", vaccines.zip.path,
+                     ssl.version = self$ssl.version)
      }
 
 
@@ -269,7 +274,7 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
     setCurrentDate = function(){
      day.hour <- as.numeric(as.character(Sys.time(), format = "%H"))
      self$current.date <- Sys.Date() -1
-     if (day.hour > self$hour.change.day){
+     if (day.hour >= self$hour.change.day){
       self$current.date <- self$current.date + 1
      }
 

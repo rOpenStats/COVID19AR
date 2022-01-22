@@ -450,11 +450,39 @@ checkFileDownload <- function (filepath, update.ts = Sys.time(), min.ts.diff = 1
 #' binaryDownload
 #' @import RCurl
 #' @export
-binaryDownload <- function(url, file){
- f <- CFILE(file, mode="wb")
- a <- curlPerform(url = url, writedata = f@ref, noprogress=FALSE)
+binaryDownload <- function(url, file, ssl.version = NULL){
+ # enum {
+ #  CURL_SSLVERSION_DEFAULT, // 0
+ #  CURL_SSLVERSION_TLSv1, /* TLS 1.x */ // 1
+ #  CURL_SSLVERSION_SSLv2, // 2
+ #  CURL_SSLVERSION_SSLv3, // 3
+ #  CURL_SSLVERSION_TLSv1_0, // 4
+ #  CURL_SSLVERSION_TLSv1_1, // 5
+ #  CURL_SSLVERSION_TLSv1_2, // 6
+ #  CURL_SSLVERSION_TLSv1_3, // 7
+ #
+ #  CURL_SSLVERSION_LAST /* never use, keep last */ // 8
+ # };
+ #
+
+ opts <- RCurl::curlOptions()
+ if (ssl.version == "1.1"){
+
+  # TLS 1.1
+  CURL_SSLVERSION_TLSv1_1 <- 5L
+    opts <- RCurl::curlOptions(verbose = TRUE,
+                               sslversion = CURL_SSLVERSION_TLSv1_1)
+  }
+  if (ssl.version == "1.2"){
+   CURL_SSLVERSION_TLSv1_2 <- 6L
+   # TLS 1.2
+   opts <- RCurl::curlOptions(verbose = TRUE,
+                              sslversion = CURL_SSLVERSION_TLSv1_2)
+  }
+  f <- CFILE(file, mode="wb")
+  a <- curlPerform(url = url, writedata = f@ref, noprogress=FALSE, .opts = opts)
  #close(f)
- a
+  a
 }
 
 #' unzipSystem
