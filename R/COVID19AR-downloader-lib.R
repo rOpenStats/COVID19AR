@@ -282,7 +282,7 @@ COVID19ARdownloaderMinsal <- R6Class("COVID19ARdownloaderMinsal",
     unzip = function(filepath){
      logger <- getLogger(self)
      os <- getOS()
-     if (os %in% c("osx", "linux")) {
+     if (os %in% c("osx", "macos", "linux")) {
       unJarSystem(filepath, exdir = self$working.dir, logger = logger)
      }
      if (os == "windows") {
