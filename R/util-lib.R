@@ -498,24 +498,24 @@ binaryDownload <- function(url, file, ssl.version = NULL, logger = lgr) {
 
 #' unzipSystem
 #' @export
-unzipSystem <- function(zip.path, args = "-oj", exdir = self$working.dir, logger = lgr) {
+unzipSystem <- function(zip.path, args = "-oj", exdir , logger = lgr) {
   ret <- NULL
   current.dir <- getwd()
   tryCatch(
     {
       setwd(exdir)
-      zip.command <- "unzip"
+      decompress.command <- "unzip"
       args <- c(
         "-o", # include override flag
         zip.path
       )
       logger$debug("Executing",
-        command = zip.command,
+        command = decompress.command,
         args = paste(args, collapse = " "),
         exdir = exdir
       )
       ret <-
-        system2(zip.command,
+        system2(decompress.command,
           args = args,
           stdout = TRUE
         )
@@ -534,21 +534,21 @@ unzipSystem <- function(zip.path, args = "-oj", exdir = self$working.dir, logger
 
 #' unJarSystem
 #' @export
-unJarSystem <- function(zip.path, exdir = self$working.dir, logger = lgr) {
+unJarSystem <- function(zip.path, exdir , logger = lgr) {
   ret <- NULL
   current.dir <- getwd()
   tryCatch(
     {
       setwd(exdir)
-      zip.command <- "jar"
+      decompress.command <- "jar"
       args <- paste("xfv", zip.path)
       logger$debug("Executing",
-        command = zip.command,
+        command = decompress.command,
         args = paste(args, collapse = " "),
         exdir = exdir
       )
       ret <-
-        system2(zip.command,
+        system2(decompress.command,
           args = args,
           stdout = TRUE
         )
