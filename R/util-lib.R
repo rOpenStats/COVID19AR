@@ -470,13 +470,13 @@ binaryDownload <- function(url, file, ssl.version = NULL){
 
   # TLS 1.1
   CURL_SSLVERSION_TLSv1_1 <- 5L
-    opts <- RCurl::curlOptions(verbose = TRUE,
+    opts <- RCurl::curlOptions(#verbose = TRUE,
                                sslversion = CURL_SSLVERSION_TLSv1_1)
   }
   if (ssl.version == "1.2"){
    CURL_SSLVERSION_TLSv1_2 <- 6L
    # TLS 1.2
-   opts <- RCurl::curlOptions(verbose = TRUE,
+   opts <- RCurl::curlOptions(#verbose = TRUE,
                               sslversion = CURL_SSLVERSION_TLSv1_2)
   }
   f <- CFILE(file, mode="wb")
