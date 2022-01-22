@@ -450,7 +450,7 @@ checkFileDownload <- function (filepath, update.ts = Sys.time(), min.ts.diff = 1
 #' binaryDownload
 #' @import RCurl
 #' @export
-binaryDownload <- function(url, file, ssl.version = NULL){
+binaryDownload <- function(url, file, ssl.version = NULL, logger = lgr){
  # enum {
  #  CURL_SSLVERSION_DEFAULT, // 0
  #  CURL_SSLVERSION_TLSv1, /* TLS 1.x */ // 1
@@ -479,10 +479,12 @@ binaryDownload <- function(url, file, ssl.version = NULL){
    opts <- RCurl::curlOptions(#verbose = TRUE,
                               sslversion = CURL_SSLVERSION_TLSv1_2)
   }
-  f <- CFILE(file, mode="wb")
-  a <- curlPerform(url = url, writedata = f@ref, noprogress=FALSE, .opts = opts)
+#  f <- CFILE(file, mode="wb")
+#  a <- curlPerform(url = url, writedata = f@ref, noprogress=FALSE, .opts = opts)
  #close(f)
-  a
+#  a
+ logger$info("curl_downlad", url = url, destfile = file)
+ curl::curl_download(url = url, destfile = file, mode = "wb", quiet = FALSE)
 }
 
 #' unzipSystem
@@ -514,9 +516,9 @@ unzipSystem <- function(zip.path, args = "-oj", exdir = self$working.dir, logger
 
 
 
-#' unzipJarSystem
+#' unJarSystem
 #' @export
-unzipJarSystem <- function(zip.path, exdir = self$working.dir, logger = lgr){
+unJarSystem <- function(zip.path, exdir = self$working.dir, logger = lgr){
  ret <- NULL
  current.dir <- getwd()
  tryCatch({

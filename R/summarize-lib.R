@@ -198,8 +198,8 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
        # download.file("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip", destfile = cases.zip.path,
        #               method = "wget",
        #               mode = "wb")
-        binaryDownload("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip", cases.zip.path,
-                       ssl.version = self$ssl.version)
+       binaryDownload("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip", cases.zip.path,
+                       ssl.version = self$ssl.version, logger = logger)
      }
      dest.file <- file.path(self$working.dir, self$cases.filename)
      logger$debug("Checking", cases.zip.path = cases.zip.path)
@@ -255,7 +255,7 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
      if (download){
       #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip
       binaryDownload("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/datos_nomivac_covid19.zip", vaccines.zip.path,
-                     ssl.version = self$ssl.version)
+                     ssl.version = self$ssl.version, logger = logger)
      }
 
 
@@ -265,7 +265,7 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
        logger$debug("Decompressing", zip.filepath = vaccines.zip.path)
        #unzip(vaccines.zip.path, junkpaths = TRUE, exdir = self$working.dir)
        #unzipSystem(vaccines.zip.path, args = "-oj", exdir = self$working.dir, logger = logger)
-       unzipJarSystem(vaccines.zip.path, exdir = self$working.dir, logger = logger)
+       self$unzip(vaccines.zip.path)
      }
      vaccines.filepath <- file.path(self$working.dir, self$vaccines.filename)
      self$vaccines.csv.filepath <- vaccines.filepath
@@ -278,6 +278,17 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
       self$current.date <- self$current.date + 1
      }
 
+    },
+    unzip = function(filepath){
+     logger <- getLogger(self)
+     os <- getOS()
+     if (os %in% c("osx", "linux")) {
+      unJarSystem(file.path, exdir = self$working.dir, logger = logger)
+     }
+     if (os == "windows") {
+      unzipSystem(file.path, exdir = self$working.dir, logger = logger)
+     }
+    }
     },
     preprocess = function(force.download = FALSE){
      logger <- getLogger(self)
