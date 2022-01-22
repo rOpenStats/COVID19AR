@@ -208,7 +208,7 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
       #unzip(normalizePath(cases.zip.path), junkpaths = TRUE, exdir = normalizePath(self$working.dir))
       # unzipSystem(normalizePath(cases.zip.path), args = "-oj", exdir = self$working.dir,
       #             logger = logger)
-      unzipJarSystem(cases.zip.path, exdir = self$working.dir, logger = logger)
+      self$unzip(cases.zip.path)
 
      }
      else{
