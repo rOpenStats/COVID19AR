@@ -1,4 +1,4 @@
-#' COVID19ARsummarizer
+#' COVID19ARdownloader
 #' @author kenarab
 #' @importFrom R6 R6Class
 #' @import sqldf
@@ -6,7 +6,7 @@
 #' @import zoo
 #' @import reshape2
 #' @export
-COVID19ARsummarizer <- R6Class("COVID19ARsummarizer",
+COVID19ARdownloader <- R6Class("COVID19ARdownloader",
   public = list(
    data.dir     = NA,
    working.dir  = NA,
@@ -15,7 +15,7 @@ COVID19ARsummarizer <- R6Class("COVID19ARsummarizer",
    covid19ar.agg = NA,
    json.output = NULL,
    logger = NA,
-   initialize = function(data.dir = getEnv("data_dir")){
+   initialize = function(data.dir = getEnv("data_dir", refresh.env = TRUE)){
     self$data.dir <- data.dir
     self$working.dir <- file.path(tempdir(), "COVID19AR")
     dir.create(self$working.dir, showWarnings = FALSE, recursive = TRUE)
@@ -36,7 +36,7 @@ COVID19ARsummarizer <- R6Class("COVID19ARsummarizer",
    }))
 
 
-#' COVID19ARsummarizerCovidStats
+#' COVID19ARdownloaderCovidStats
 #' @author kenarab
 #' @importFrom R6 R6Class
 #' @import sqldf
@@ -44,8 +44,8 @@ COVID19ARsummarizer <- R6Class("COVID19ARsummarizer",
 #' @import zoo
 #' @import reshape2
 #' @export
-COVID19ARsummarizerCovidStats <- R6Class("COVID19ARsummarizerCovidStats",
-inherit = COVID19ARsummarizer,
+COVID19ARdownloaderCovidStats <- R6Class("COVID19ARdownloaderCovidStats",
+inherit = COVID19ARdownloader,
 public = list(
 # Consolidated2
 covidstats.df = NULL,
@@ -141,7 +141,7 @@ generateOutputJson = function(source = "covidstats"){
 
 
 
-#' COVID19ARsummarizerMinsal
+#' COVID19ARdownloaderMinsal
 #' @author kenarab
 #' @importFrom R6 R6Class
 #' @import sqldf
@@ -149,8 +149,8 @@ generateOutputJson = function(source = "covidstats"){
 #' @import zoo
 #' @import reshape2
 #' @export
-COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
-  inherit = COVID19ARsummarizer,
+COVID19ARdownloaderMinsal <- R6Class("COVID19ARdownloaderMinsal",
+  inherit = COVID19ARdownloader,
   public = list(
     data.dir     = NA,
     working.dir  = NA,

@@ -2,10 +2,10 @@
 
 export(COVID19ARCurator)
 export(COVID19ARDiffSummarizer)
+export(COVID19ARdownloader)
+export(COVID19ARdownloaderCovidStats)
+export(COVID19ARdownloaderMinsal)
 export(COVID19ARpreprocessor)
-export(COVID19ARsummarizer)
-export(COVID19ARsummarizerCovidStats)
-export(COVID19ARsummarizerMinsal)
 export(ConsolidatedDeathsData.class)
 export(EdadCoder)
 export(ReportGeneratorCOVID19AR)

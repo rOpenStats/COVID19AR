@@ -42,6 +42,6 @@ Collate:
         'COVID19AR-lib.R'
         'report-lib.R'
         'util-lib.R'
-        'summarize-lib.R'
+        'COVID19AR-downloader-lib.R'
         'csv_to_sql.R'
 RoxygenNote: 7.1.2
