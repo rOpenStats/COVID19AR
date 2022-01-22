@@ -21,6 +21,7 @@ kenarab
 \item \href{#method-preprocessCasesMinsal}{\code{COVID19ARsummarizerMinsal$preprocessCasesMinsal()}}
 \item \href{#method-preprocessVaccinesMinsal}{\code{COVID19ARsummarizerMinsal$preprocessVaccinesMinsal()}}
 \item \href{#method-setCurrentDate}{\code{COVID19ARsummarizerMinsal$setCurrentDate()}}
+\item \href{#method-unzip}{\code{COVID19ARsummarizerMinsal$unzip()}}
 \item \href{#method-preprocess}{\code{COVID19ARsummarizerMinsal$preprocess()}}
 \item \href{#method-clone}{\code{COVID19ARsummarizerMinsal$clone()}}
 }
@@ -43,7 +44,8 @@ kenarab
   data.dir = getEnv("data_dir"),
   cases.filename = "Covid19Casos.csv",
   vaccines.filename = "datos_nomivac_covid19.csv",
-  download.min.ts.diff = 19 * 60 * 60
+  download.min.ts.diff = 19 * 60 * 60,
+  ssl.version = "1.1"
 )}\if{html}{\out{</div>}}
 }
 
@@ -72,6 +74,15 @@ kenarab
 \subsection{Method \code{setCurrentDate()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerMinsal$setCurrentDate()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-unzip"></a>}}
+\if{latex}{\out{\hypertarget{method-unzip}{}}}
+\subsection{Method \code{unzip()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{COVID19ARsummarizerMinsal$unzip(filepath)}\if{html}{\out{</div>}}
 }
 
 }

@@ -288,7 +288,6 @@ COVID19ARsummarizerMinsal <- R6Class("COVID19ARsummarizerMinsal",
      if (os == "windows") {
       unzipSystem(file.path, exdir = self$working.dir, logger = logger)
      }
-    }
     },
     preprocess = function(force.download = FALSE){
      logger <- getLogger(self)
