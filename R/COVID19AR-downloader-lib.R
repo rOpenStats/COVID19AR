@@ -156,15 +156,14 @@ COVID19ARdownloaderMinsal <- R6Class("COVID19ARdownloaderMinsal",
     working.dir  = NA,
     cases.filename = NA,
     vaccines.filename = NA,
-    download.min.ts.diff = NA,
     cases.csv.filepath = NA,
     vaccines.csv.filepath = NA,
     hour.change.day = 21,
     current.date = NA,
-    ssl.version = NA,
+    decompress = NA,
     # db
-    cases.db.file = NA,
-    vacciones.db.file = NA,
+    #cases.db.file = NA,
+    #vacciones.db.file = NA,
     # Consolidated
     cases.agg.df = NA,
     vaccines.agg.df = NA,
@@ -172,14 +171,12 @@ COVID19ARdownloaderMinsal <- R6Class("COVID19ARdownloaderMinsal",
     initialize = function(data.dir = getEnv("data_dir"),
                           cases.filename = "Covid19Casos.csv",
                           vaccines.filename = "datos_nomivac_covid19.csv",
-                          download.min.ts.diff = 19*60*60,
-                          ssl.version = "1.1"
+                          decompress = TRUE
     ){
      super$initialize(data.dir)
      self$cases.filename <- cases.filename
      self$vaccines.filename <- vaccines.filename
-     self$download.min.ts.diff <- download.min.ts.diff
-     self$ssl.version <- ssl.version
+     self$decompress        <- decompress
      self$processing.log <- data.frame(key = character(), begin.end = character(), ts = character())
      self
     },
@@ -188,40 +185,47 @@ COVID19ARdownloaderMinsal <- R6Class("COVID19ARdownloaderMinsal",
      self$setCurrentDate()
      cases.preprocessed.filepath <- file.path(self$data.dir, "cases_agg.csv")
      #cases.zip.path <- file.path(self$data.dir, gsub("\\.csv", ".zip", self$cases.filename))
+     current.date.text <- as.character(self$current.date, format = "%y%m%d")
+     previous.date.text <- as.character(self$current.date - 1, format = "%y%m%d")
      cases.zip.path <- file.path(self$data.dir, gsub("\\.csv",
-                                 paste("_", as.character(self$current.date, format = "%y%m%d"),".zip", sep = ""), self$cases.filename))
-     download <- checkFileDownload(cases.zip.path, min.ts.diff = self$download.min.ts.diff, min.size = 340000000)
-     download
+                                 paste("_", current.date.text,".zip", sep = ""), self$cases.filename))
+     cases.prev.zip.path <- gsub(current.date.text, previous.date.text, cases.zip.path)
+     #download <- checkFileDownload(cases.zip.path, min.ts.diff = self$download.min.ts.diff, min.size = 340000000)
+     download.url <- "https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip"
+     download <- checkUpdatedUrl(download.url, cases.zip.path, cases.prev.zip.path, logger = logger)
      #if (cases.info$mtime < Sys.time() - 60*60*19 | cases.info$size < 300000000){
      if (download){
        #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip
        # download.file("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip", destfile = cases.zip.path,
        #               method = "wget",
        #               mode = "wb")
-       binaryDownload("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip", cases.zip.path,
-                       ssl.version = self$ssl.version, logger = logger)
+       binaryDownload(url, cases.zip.path, logger = logger)
      }
      dest.file <- file.path(self$working.dir, self$cases.filename)
      logger$debug("Checking", cases.zip.path = cases.zip.path)
-     if(file.exists(cases.zip.path) & !file.exists(dest.file)){
-      logger$info("Decompressing", zip.filepath = cases.zip.path)
-      #unzip(normalizePath(cases.zip.path), junkpaths = TRUE, exdir = normalizePath(self$working.dir))
-      # unzipSystem(normalizePath(cases.zip.path), args = "-oj", exdir = self$working.dir,
-      #             logger = logger)
-      self$unzip(cases.zip.path)
+     if (self$decompress){
+       if(file.exists(cases.zip.path) & !file.exists(dest.file) ){
+        logger$info("Decompressing", zip.filepath = cases.zip.path)
+        #unzip(normalizePath(cases.zip.path), junkpaths = TRUE, exdir = normalizePath(self$working.dir))
+        # unzipSystem(normalizePath(cases.zip.path), args = "-oj", exdir = self$working.dir,
+        #             logger = logger)
+        self$unzip(cases.zip.path)
+
+       }
+       else{
+        if (!file.exists(cases.zip.path)){
+         stop(paste("File not found:", cases.zip.path))
+        }
+       }
+      dir(self$working.dir)
+      cases.filepath <- file.path(self$working.dir, self$cases.filename)
+      stopifnot(file.exists(cases.filepath))
+      logger$debug("File available",
+                   cases.df = cases.filepath)
+      self$cases.csv.filepath <- cases.filepath
 
      }
-     else{
-      if (!file.exists(cases.zip.path)){
-       stop(paste("File not found:", cases.zip.path))
-      }
-     }
-     dir(self$working.dir)
-     cases.filepath <- file.path(self$working.dir, self$cases.filename)
-     stopifnot(file.exists(cases.filepath))
-     logger$debug("Loading",
-                  cases.df = cases.filepath)
-     self$cases.db.file <- tempfile()
+     #self$cases.db.file <- tempfile()
      # cases.sql.text <- paste("select replace(fecha_apertura, '\"', '') fecha_apertura,
      #                                 sum(CASE WHEN clasificacion_resumen == '\"Confirmado\"' THEN 1 ELSE 0) positivos,
      #                                 count(*) diagnosticos,
@@ -233,7 +237,6 @@ COVID19ARdownloaderMinsal <- R6Class("COVID19ARdownloaderMinsal",
      # logger$debug("Generating sqldf db and cases.agg.df",
      #              cases.filepath = cases.filepath,
      #              size = paste(getSizeFormatted(cases.file.info$size), collapse = ""))
-     self$cases.csv.filepath <- cases.filepath
      # self$cases.agg.df <- read.csv.sql(self$cases.csv.filepath,
      #               sql = cases.sql.text,
      #               dbname = self$cases.db.file,
@@ -242,34 +245,40 @@ COVID19ARdownloaderMinsal <- R6Class("COVID19ARdownloaderMinsal",
      # logger$debug("Running query repeated cases",
      #              cases.filepath = cases.filepath,
      #              size = paste(getSizeFormatted(cases.file.info$size), collapse = ""))
+     self
     },
     preprocessVaccinesMinsal = function(force.preprocess = FALSE){
      logger <- getLogger(self)
      self$setCurrentDate()
      #self$data.dir <- "~/../Downloads/"
+     current.date.text <- as.character(self$current.date, format = "%y%m%d")
+     previous.date.text <- as.character(self$current.date - 1, format = "%y%m%d")
      vaccines.zip.path <- file.path(self$data.dir, gsub("\\.csv",
                                                         paste("_", as.character(self$current.date, format = "%y%m%d"),".zip", sep = ""), self$vaccines.filename))
-     download <- checkFileDownload(vaccines.zip.path, min.ts.diff = self$download.min.ts.diff, min.size = 1000000000)
+     vaccines.prev.zip.path <- gsub(current.date.text, previous.date.text, vaccines.zip.path)
+     #download <- checkFileDownload(vaccines.zip.path, min.ts.diff = self$download.min.ts.diff, min.size = 340000000)
+     download.url <- "https://sisa.msal.gov.ar/datos/descargas/covid-19/files/datos_nomivac_covid19.zip"
+     download <- checkUpdatedUrl(download.url, vaccines.zip.path, vaccines.prev.zip.path, logger = logger)
+
      download
-     #if (cases.info$mtime < Sys.time() - 60*60*19 | cases.info$size < 300000000){
      if (download){
       #https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip
-      binaryDownload("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/datos_nomivac_covid19.zip", vaccines.zip.path,
-                     ssl.version = self$ssl.version, logger = logger)
+      binaryDownload(download.url, vaccines.zip.path, logger = logger)
      }
 
 
      dest.file <- file.path(self$working.dir, self$vaccines.filename)
-     #
-     if(file.exists(vaccines.zip.path) & !file.exists(dest.file)){
+     if (self$decompress){
+      if(file.exists(vaccines.zip.path) & !file.exists(dest.file) ){
        logger$debug("Decompressing", zip.filepath = vaccines.zip.path)
        #unzip(vaccines.zip.path, junkpaths = TRUE, exdir = self$working.dir)
        #unzipSystem(vaccines.zip.path, args = "-oj", exdir = self$working.dir, logger = logger)
        self$unzip(vaccines.zip.path)
+      }
+      vaccines.filepath <- file.path(self$working.dir, self$vaccines.filename)
+      self$vaccines.csv.filepath <- vaccines.filepath
+      stopifnot(file.exists(vaccines.filepath))
      }
-     vaccines.filepath <- file.path(self$working.dir, self$vaccines.filename)
-     self$vaccines.csv.filepath <- vaccines.filepath
-     stopifnot(file.exists(vaccines.filepath))
     },
     setCurrentDate = function(){
      day.hour <- as.numeric(as.character(Sys.time(), format = "%H"))

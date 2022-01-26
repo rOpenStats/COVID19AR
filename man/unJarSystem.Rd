@@ -4,7 +4,7 @@
 \alias{unJarSystem}
 \title{unJarSystem}
 \usage{
-unJarSystem(zip.path, exdir = self$working.dir, logger = lgr)
+unJarSystem(zip.path, exdir, logger = lgr)
 }
 \description{
 unJarSystem

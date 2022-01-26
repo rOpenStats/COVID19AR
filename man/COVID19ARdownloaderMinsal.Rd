@@ -44,8 +44,7 @@ kenarab
   data.dir = getEnv("data_dir"),
   cases.filename = "Covid19Casos.csv",
   vaccines.filename = "datos_nomivac_covid19.csv",
-  download.min.ts.diff = 19 * 60 * 60,
-  ssl.version = "1.1"
+  decompress = TRUE
 )}\if{html}{\out{</div>}}
 }
 

@@ -454,6 +454,73 @@ checkFileDownload <- function(filepath, update.ts = Sys.time(), min.ts.diff = 12
   ret
 }
 
+checkUpdatedUrl <- function(download.url, filepath, filepath.prev,
+                            logger = lgr){
+ # curl_options()[grep("header", names(curl_options()))]
+ # h <- new_handle()
+ # handle_setopt(h, copypostfields = "moo=moomooo");
+ # handle_setopt(h, )
+ # handle_setheaders(h,
+ #                   "Content-Type" = "text/moo",
+ #                   "Cache-Control" = "no-cache",
+ #                   "User-Agent" = "A cow"
+ # )
+ #curl::curl_fetch_memory(url = download.url, )
+
+ fetch.header.command <- paste("curl -sI", download.url, "| grep -i Content-Length")
+ content.length <- system(fetch.header.command, intern = TRUE)
+ content.length <- gsub("Content-Length: ", "", content.length)
+ content.length <- as.numeric(content.length)
+ prev.size <- as.numeric(NA)
+ if (file.exists(filepath.prev)){
+  prev.size <- file.info(filepath.prev)$size
+ }
+ current.size <- as.numeric(NA)
+ if (file.exists(filepath)){
+  current.size <- file.info(filepath)$size
+ }
+ if (!is.na(current.size) | !is.na(prev.size)){
+   max.size <- max(current.size, prev.size, na.rm = TRUE)
+   download <- content.length > max(max.size)
+ }
+ else{
+  download <- TRUE
+ }
+ if (is.na(current.size) & !is.na(prev.size)){
+  download <- content.length != prev.size
+  logger$info("Downloading because different file remote - prev",
+              content.length = content.length,
+              prev.size = prev.size)
+
+ }
+ max.current.file <- max(content.length, current.size, na.rm = TRUE)
+ if (!is.na(max.current.file) & !is.na(prev.size)){
+  if (max.current.file < prev.size){
+   logger$warning("Prev file is greater than current", prev.size = prev.size,
+                  current.size = current.size)
+  }
+ }
+ if (!is.na(max.current.file)){
+  if (content.length > current.size){
+   logger$warning("Remote file is greater than current",
+                  content.length = content.length,
+                  current.size = current.size)
+   download <- TRUE
+  }
+ }
+ if (!download){
+   logger$debug("Not downloading. Remote file is equal", url.size = content.length,
+                prev.size = prev.size,
+                current.size = current.size)
+ }
+ else{
+  logger$info("Downloading", url.size = content.length,
+               prev.size = prev.size,
+               current.size = current.size)
+ }
+ download
+}
+
 #' binaryDownload
 #' @import RCurl
 #' @export

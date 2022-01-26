@@ -14,6 +14,7 @@
 #' @param pkgname Package name
 # execute onload
 .onLoad <- function(libname, pkgname) {
+ getEnv("data_dir", refresh.env = TRUE, fail.on.empty = FALSE)
   os <- getOS()
   if (os == "osx") {
   }

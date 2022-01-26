@@ -77,16 +77,20 @@ csv.name <- "2016-04-20-processed-logs-big-file-example.csv"
 db.name <- "2016-04-20-processed-logs-big-file-example.db"
 # download the CSV file example
 csv.url <- paste("https://s3-eu-west-1.amazonaws.com/lw-birdtracking-data/",
-                 csv.name, ".gz", sep = "")
+  csv.name, ".gz",
+  sep = ""
+)
 download.file(csv.url, destfile = paste0(csv.name, ".gz"))
 gunzip(paste0(csv.name, ".gz"))
 # Make a SQLite database
 sqlite_file <- "example2.sqlite"
 sqlite_conn <- dbConnect(SQLite(), dbname = sqlite_file)
 table_name <- "birdtracks"
-csv_to_sql(csv_file = csv.name,
-              con = sqlite_conn,
-              table_name =table_name)
+csv_to_sql(
+  csv_file = csv.name,
+  con = sqlite_conn,
+  table_name = table_name
+)
 # Get access to SQLite database
 my_db <- src_sqlite(sqlite_file, create = FALSE)
 bird_tracking <- tbl(my_db, "birdtracks")

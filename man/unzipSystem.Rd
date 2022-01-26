@@ -4,7 +4,7 @@
 \alias{unzipSystem}
 \title{unzipSystem}
 \usage{
-unzipSystem(zip.path, args = "-oj", exdir = self$working.dir, logger = lgr)
+unzipSystem(zip.path, args = "-oj", exdir, logger = lgr)
 }
 \description{
 unzipSystem
