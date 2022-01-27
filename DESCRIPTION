@@ -13,7 +13,6 @@ LazyData: true
 Suggests:
          testthat
 Depends: R (>= 3.6),
-         sqldf,
          dplyr,
          dtplyr,
          zoo,

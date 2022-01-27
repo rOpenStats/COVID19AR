@@ -4,7 +4,7 @@
 \alias{binaryDownload}
 \title{binaryDownload}
 \usage{
-binaryDownload(url, file, ssl.version = NULL, logger = lgr)
+binaryDownload(url, file, logger = lgr)
 }
 \description{
 binaryDownload
