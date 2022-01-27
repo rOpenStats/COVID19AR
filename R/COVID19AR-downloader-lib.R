@@ -199,7 +199,7 @@ COVID19ARdownloaderMinsal <- R6Class("COVID19ARdownloaderMinsal",
        # download.file("https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.zip", destfile = cases.zip.path,
        #               method = "wget",
        #               mode = "wb")
-       binaryDownload(url, cases.zip.path, logger = logger)
+       binaryDownload(download.url, cases.zip.path, logger = logger)
      }
      dest.file <- file.path(self$working.dir, self$cases.filename)
      logger$debug("Checking", cases.zip.path = cases.zip.path)

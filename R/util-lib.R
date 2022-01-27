@@ -500,7 +500,7 @@ checkUpdatedUrl <- function(download.url, filepath, filepath.prev,
                   current.size = current.size)
   }
  }
- if (!is.na(max.current.file)){
+ if (!is.na(content.length) & !is.na(current.size)){
   if (content.length > current.size){
    logger$warning("Remote file is greater than current",
                   content.length = content.length,
@@ -524,7 +524,7 @@ checkUpdatedUrl <- function(download.url, filepath, filepath.prev,
 #' binaryDownload
 #' @import RCurl
 #' @export
-binaryDownload <- function(url, file, ssl.version = NULL, logger = lgr) {
+binaryDownload <- function(url, file, logger = lgr) {
   # enum {
   #  CURL_SSLVERSION_DEFAULT, // 0
   #  CURL_SSLVERSION_TLSv1, /* TLS 1.x */ // 1
@@ -539,22 +539,22 @@ binaryDownload <- function(url, file, ssl.version = NULL, logger = lgr) {
   # };
   #
 
-  opts <- RCurl::curlOptions()
-  if (ssl.version == "1.1") {
-
-    # TLS 1.1
-    CURL_SSLVERSION_TLSv1_1 <- 5L
-    opts <- RCurl::curlOptions( # verbose = TRUE,
-      sslversion = CURL_SSLVERSION_TLSv1_1
-    )
-  }
-  if (ssl.version == "1.2") {
-    CURL_SSLVERSION_TLSv1_2 <- 6L
-    # TLS 1.2
-    opts <- RCurl::curlOptions( # verbose = TRUE,
-      sslversion = CURL_SSLVERSION_TLSv1_2
-    )
-  }
+  # opts <- RCurl::curlOptions()
+  # if (ssl.version == "1.1") {
+  #
+  #   # TLS 1.1
+  #   CURL_SSLVERSION_TLSv1_1 <- 5L
+  #   opts <- RCurl::curlOptions( # verbose = TRUE,
+  #     sslversion = CURL_SSLVERSION_TLSv1_1
+  #   )
+  # }
+  # if (ssl.version == "1.2") {
+  #   CURL_SSLVERSION_TLSv1_2 <- 6L
+  #   # TLS 1.2
+  #   opts <- RCurl::curlOptions( # verbose = TRUE,
+  #     sslversion = CURL_SSLVERSION_TLSv1_2
+  #   )
+  # }
   #  f <- CFILE(file, mode="wb")
   #  a <- curlPerform(url = url, writedata = f@ref, noprogress=FALSE, .opts = opts)
   # close(f)
