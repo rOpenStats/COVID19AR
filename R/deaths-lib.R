@@ -3,21 +3,49 @@
 #' retrieveArgentinasDeathsStatistics
 #' @author kenarab
 #' @export
-retrieveArgentinasDeathsStatistics <- function() {
+retrieveArgentinasDeathsStatistics <- function(download.new.data = FALSE) {
   # http://www.deis.msal.gov.ar/index.php/base-de-datos/
   # TODO link scrape automation with rvest
   # deaths.stats.html <- read_html("http://www.deis.msal.gov.ar/index.php/base-de-datos/")
   # deaths.stats.html %>% html_nodes("") %>% html_attr('href')
   # deaths.stats.html %>% html_attr('href')
+  deaths.path <- file.path(getEnv("data_dir"), "deaths")
+  dir.create(deaths.path, recursive = TRUE, showWarnings = FALSE)
+  retrieveURL(data.url = "https://www.argentina.gob.ar/sites/default/files/2021/03/descdef1.xlsx",
+              dest.filename = "DescDef1.xlsx",
+              download.new.data = download.new.data)
+  retrieveURL(data.url = "https://www.argentina.gob.ar/sites/default/files/2021/03/defweb19.csv",
+              dest.filename = "DefWeb19.csv",
+              download.new.data = download.new.data)
+  retrieveURL(data.url = "https://www.argentina.gob.ar/sites/default/files/2021/03/defweb18.csv",
+              dest.filename = "DefWeb18.csv",
+              download.new.data = download.new.data)
+  retrieveURL(data.url = "https://www.argentina.gob.ar/sites/default/files/2021/03/defweb17.csv",
+              dest.filename = "DefWeb17.csv",
+              download.new.data = download.new.data)
+  retrieveURL(data.url = "https://www.argentina.gob.ar/sites/default/files/2021/03/defweb16.csv",
+              dest.filename = "DefWeb16.csv",
+              download.new.data = download.new.data)
+  retrieveURL(data.url = "https://www.argentina.gob.ar/sites/default/files/2021/03/defweb15.csv",
+              dest.filename = "DefWeb15.csv",
+              download.new.data = download.new.data)
+  retrieveURL(data.url = "https://www.argentina.gob.ar/sites/default/files/2021/03/defweb14.csv",
+              dest.filename = "DefWeb14.csv",
+              download.new.data = download.new.data)
+  retrieveURL(data.url = "https://www.argentina.gob.ar/sites/default/files/2021/03/defweb13.csv",
+              dest.filename = "DefWeb13.csv",
+              download.new.data = download.new.data)
+  retrieveURL(data.url = "https://www.argentina.gob.ar/sites/default/files/2021/03/defweb12.csv",
+              dest.filename = "DefWeb12.csv",
+              download.new.data = download.new.data)
+  for (cy in 11:05){
+    expected.filename <- paste("defweb", pad(cy, 2), ".csv", sep = "")
+    retrieveURL(data.url = paste("https://www.argentina.gob.ar/sites/default/files/2021/03/", expected.filename, sep = ""),
+               dest.filename = expected.filename,
+               download.new.data = download.new.data)
+  }
+  # There is data up to 15
 
-  retrieveURL(data.url = "http://www.deis.msal.gov.ar/wp-content/uploads/2019/01/DescDef1.xlsx", download.new.data = FALSE)
-  retrieveURL(data.url = "http://www.deis.msal.gov.ar/wp-content/uploads/2020/01/DefWeb18.csv", download.new.data = FALSE)
-  retrieveURL(data.url = "http://www.deis.msal.gov.ar/wp-content/uploads/2019/01/DefWeb17.csv", download.new.data = FALSE)
-  retrieveURL(data.url = "http://www.deis.msal.gov.ar/wp-content/uploads/2018/06/DefWeb16.csv", download.new.data = FALSE)
-  retrieveURL(data.url = "http://www.deis.msal.gov.ar/wp-content/uploads/2018/06/DefWeb15.csv", download.new.data = FALSE)
-  retrieveURL(data.url = "http://www.deis.msal.gov.ar/wp-content/uploads/2018/06/DefWeb14.csv", download.new.data = FALSE)
-  retrieveURL(data.url = "http://www.deis.msal.gov.ar/wp-content/uploads/2018/06/DefWeb13.csv", download.new.data = FALSE)
-  retrieveURL(data.url = "http://www.deis.msal.gov.ar/wp-content/uploads/2018/06/DefWeb12.csv", download.new.data = FALSE)
 }
 
 
