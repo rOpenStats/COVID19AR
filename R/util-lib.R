@@ -498,13 +498,13 @@ checkUpdatedUrl <- function(download.url, filepath, filepath.prev,
  max.current.file <- max(content.length, current.size, na.rm = TRUE)
  if (!is.na(max.current.file) & !is.na(prev.size)){
   if (max.current.file < prev.size){
-   logger$warning("Prev file is greater than current", prev.size = prev.size,
+   logger$warn("Prev file is greater than current", prev.size = prev.size,
                   current.size = current.size)
   }
  }
  if (!is.na(content.length) & !is.na(current.size)){
   if (content.length > current.size){
-   logger$warning("Remote file is greater than current",
+   logger$warn("Remote file is greater than current",
                   content.length = content.length,
                   current.size = current.size)
    download <- TRUE
